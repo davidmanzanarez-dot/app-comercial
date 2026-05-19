@@ -1,0 +1,2361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#050d1a">
+<title>SS Comercial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   VARIABLES Y RESET
+   ============================================================ */
+:root{
+  --bg:#050d1a;
+  --surface:#0a1830;
+  --surface-2:#102240;
+  --surface-3:#152d52;
+  --border:#1d3258;
+  --border-strong:#2a4a7c;
+  --accent:#1e9cd7;
+  --accent-2:#42b8ee;
+  --accent-dark:#0b6695;
+  --text:#e6eef9;
+  --text-dim:#8aa3c8;
+  --text-mute:#5a7299;
+  --ok:#2fbf71;
+  --warn:#f0a832;
+  --err:#ef5a5a;
+  --pending:#f0a832;
+
+  --r-sm:4px;
+  --r-md:6px;
+  --r-lg:10px;
+
+  --font-display:'Barlow Condensed', sans-serif;
+  --font-body:'Barlow', sans-serif;
+
+  --shadow-1:0 2px 8px rgba(0,0,0,.4);
+  --shadow-2:0 8px 24px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.4;
+  font-size:15px;
+  overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:0;background:0;color:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit}
+a{color:var(--accent);text-decoration:none}
+
+/* ============================================================
+   LAYOUT PRINCIPAL (mobile-first)
+   ============================================================ */
+.app{
+  max-width:480px;
+  margin:0 auto;
+  min-height:100vh;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+/* En escritorio, la app vendedor queda centrada con fondo a los costados */
+@media (min-width:768px){
+  body{background:radial-gradient(ellipse at top,#0c1e3d 0%,#050d1a 60%)}
+  .app{
+    box-shadow:0 0 60px rgba(0,0,0,.6);
+    border-left:1px solid var(--border);
+    border-right:1px solid var(--border);
+  }
+  /* Si es admin con sidebar, ocupa todo el ancho */
+  .app.admin-desktop{
+    max-width:100%;
+    border:0;
+    box-shadow:none;
+  }
+}
+
+/* ============================================================
+   HEADER / WORDMARK
+   ============================================================ */
+.header{
+  padding:16px 18px 14px;
+  background:linear-gradient(180deg,#08152b 0%,#050d1a 100%);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.wordmark{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:24px;
+  letter-spacing:3px;
+  line-height:1;
+  user-select:none;
+}
+.wordmark .ss{color:var(--accent)}
+.wordmark .co{color:#fff}
+.header-user{
+  font-family:var(--font-display);
+  font-size:13px;
+  letter-spacing:1px;
+  color:var(--text-dim);
+  text-transform:uppercase;
+}
+.btn-logout{
+  font-family:var(--font-display);
+  font-size:12px;
+  letter-spacing:1.5px;
+  color:var(--text-mute);
+  background:transparent;
+  border:1px solid var(--border);
+  padding:6px 10px;
+  border-radius:var(--r-sm);
+  text-transform:uppercase;
+  transition:.15s;
+}
+.btn-logout:hover{color:var(--err);border-color:var(--err)}
+
+/* ============================================================
+   CONTENIDO PRINCIPAL
+   ============================================================ */
+.content{
+  flex:1;
+  padding:16px;
+  overflow-y:auto;
+}
+.page-title{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:22px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#fff;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.page-title .accent-bar{
+  width:4px;
+  height:22px;
+  background:var(--accent);
+  border-radius:2px;
+}
+
+/* ============================================================
+   BOTTOM NAV (vendedor)
+   ============================================================ */
+.bottomnav{
+  display:flex;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  position:sticky;
+  bottom:0;
+  z-index:40;
+}
+.bottomnav button{
+  flex:1;
+  padding:11px 4px 9px;
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:1.2px;
+  color:var(--text-mute);
+  text-transform:uppercase;
+  border-top:2px solid transparent;
+  transition:.15s;
+}
+.bottomnav button .icon{
+  display:block;
+  font-size:18px;
+  margin-bottom:2px;
+}
+.bottomnav button.active{
+  color:var(--accent);
+  border-top-color:var(--accent);
+  background:rgba(30,156,215,.06);
+}
+
+/* ============================================================
+   SIDEBAR ADMIN (escritorio)
+   ============================================================ */
+.admin-layout{
+  display:flex;
+  min-height:100vh;
+}
+.sidebar{
+  width:220px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+.sidebar-header{
+  padding:20px 18px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar nav{
+  padding:10px 0;
+  flex:1;
+}
+.sidebar nav button{
+  width:100%;
+  padding:12px 18px;
+  text-align:left;
+  font-family:var(--font-display);
+  font-size:14px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  border-left:3px solid transparent;
+  transition:.15s;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.sidebar nav button:hover{
+  background:var(--surface-2);
+  color:#fff;
+}
+.sidebar nav button.active{
+  background:var(--surface-2);
+  color:var(--accent);
+  border-left-color:var(--accent);
+}
+.sidebar-foot{
+  padding:14px 18px;
+  border-top:1px solid var(--border);
+}
+.admin-main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ============================================================
+   CARDS / TARJETAS
+   ============================================================ */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:14px;
+  margin-bottom:12px;
+}
+.card-title{
+  font-family:var(--font-display);
+  font-size:13px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:8px;
+}
+
+/* ============================================================
+   KPIs
+   ============================================================ */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+.kpi-grid.three{grid-template-columns:1fr 1fr 1fr}
+@media (min-width:1024px){
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .kpi-grid.three{grid-template-columns:repeat(3,1fr)}
+}
+.kpi{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:12px;
+  position:relative;
+  overflow:hidden;
+}
+.kpi.highlight{
+  border-color:var(--accent);
+  background:linear-gradient(135deg,rgba(30,156,215,.15) 0%,var(--surface) 100%);
+}
+.kpi-label{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+}
+.kpi-value{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:24px;
+  color:#fff;
+  margin-top:2px;
+  line-height:1.1;
+}
+.kpi-value.small{font-size:18px}
+.kpi-sub{
+  font-size:11px;
+  color:var(--text-mute);
+  margin-top:2px;
+}
+
+/* ============================================================
+   BANNERS
+   ============================================================ */
+.banner{
+  padding:10px 12px;
+  border-radius:var(--r-md);
+  margin-bottom:10px;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  transition:.15s;
+}
+.banner-warn{
+  background:rgba(240,168,50,.12);
+  border:1px solid rgba(240,168,50,.4);
+  color:#ffd388;
+}
+.banner-err{
+  background:rgba(239,90,90,.12);
+  border:1px solid rgba(239,90,90,.4);
+  color:#ff9a9a;
+}
+.banner:hover{filter:brightness(1.15)}
+
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
+.form-group{margin-bottom:13px}
+.form-group label{
+  display:block;
+  font-family:var(--font-display);
+  font-size:12px;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:5px;
+}
+.form-group label .req{color:var(--err);margin-left:3px}
+.form-group input,
+.form-group select,
+.form-group textarea{
+  width:100%;
+  padding:11px 12px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  color:var(--text);
+  font-size:15px;
+  transition:.15s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+  outline:0;
+  border-color:var(--accent);
+  background:var(--surface-3);
+}
+.form-group input:disabled,
+.form-group select:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+.form-group .hint{
+  display:block;
+  font-size:11px;
+  color:var(--text-mute);
+  margin-top:4px;
+}
+.form-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+.btn{
+  padding:12px 16px;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  border-radius:var(--r-sm);
+  transition:.15s;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.btn-primary{
+  background:var(--accent);
+  color:#fff;
+}
+.btn-primary:hover{background:var(--accent-2)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{
+  background:var(--surface-2);
+  color:var(--text-mute);
+  cursor:not-allowed;
+}
+.btn-secondary{
+  background:var(--surface-2);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+.btn-secondary:hover{background:var(--surface-3)}
+.btn-success{background:var(--ok);color:#fff}
+.btn-success:hover{filter:brightness(1.1)}
+.btn-danger{background:var(--err);color:#fff}
+.btn-danger:hover{filter:brightness(1.1)}
+.btn-ghost{
+  background:transparent;
+  color:var(--text-dim);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover{color:#fff;border-color:var(--border-strong)}
+.btn-block{width:100%}
+.btn-sm{padding:7px 11px;font-size:11px;letter-spacing:1.2px}
+
+/* ============================================================
+   PREVIEW DE COMISIÓN
+   ============================================================ */
+.commission-preview{
+  background:linear-gradient(135deg,rgba(30,156,215,.18) 0%,rgba(30,156,215,.05) 100%);
+  border:1px solid var(--accent);
+  border-radius:var(--r-md);
+  padding:14px;
+  margin:14px 0;
+}
+.commission-preview .cp-title{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent-2);
+  margin-bottom:8px;
+}
+.commission-preview .cp-total{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:26px;
+  color:#fff;
+  line-height:1.1;
+}
+.commission-preview .cp-breakdown{
+  margin-top:8px;
+  font-size:13px;
+  color:var(--text-dim);
+}
+.commission-preview .cp-line{
+  display:flex;
+  justify-content:space-between;
+  padding:3px 0;
+  border-bottom:1px dashed var(--border);
+}
+.commission-preview .cp-line:last-child{border-bottom:0}
+.commission-preview .cp-line span:last-child{color:#fff;font-weight:600}
+
+/* ============================================================
+   LISTAS DE VENTAS / TARJETAS DE REGISTRO
+   ============================================================ */
+.venta-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:3px solid var(--border-strong);
+  border-radius:var(--r-md);
+  padding:12px;
+  margin-bottom:10px;
+  transition:.15s;
+}
+.venta-card.pendiente{border-left-color:var(--pending)}
+.venta-card.aprobada{border-left-color:var(--ok)}
+.venta-card.rechazada{border-left-color:var(--err)}
+.venta-card.anulada{border-left-color:var(--text-mute);opacity:.7}
+.venta-card:hover{border-color:var(--border-strong)}
+.vc-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:8px;
+  gap:10px;
+}
+.vc-equipo{
+  font-weight:600;
+  font-size:15px;
+  color:#fff;
+  line-height:1.2;
+}
+.vc-fecha{
+  font-size:12px;
+  color:var(--text-mute);
+}
+.vc-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 12px;
+  font-size:13px;
+  color:var(--text-dim);
+  margin-bottom:8px;
+}
+.vc-meta span strong{color:#fff;font-weight:600}
+.vc-foot{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  padding-top:8px;
+  border-top:1px solid var(--border);
+}
+.vc-comision{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:18px;
+  color:var(--accent);
+}
+.vc-cuota{
+  font-size:11px;
+  color:var(--text-mute);
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.vc-actions{display:flex;gap:6px}
+.estado-badge{
+  display:inline-block;
+  padding:3px 8px;
+  border-radius:3px;
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:600;
+}
+.estado-badge.pendiente{background:rgba(240,168,50,.2);color:#ffd388}
+.estado-badge.aprobada{background:rgba(47,191,113,.2);color:#7fe5ad}
+.estado-badge.rechazada{background:rgba(239,90,90,.2);color:#ff9a9a}
+.estado-badge.anulada{background:rgba(90,114,153,.2);color:var(--text-dim)}
+
+.vc-motivo{
+  background:rgba(239,90,90,.08);
+  border:1px solid rgba(239,90,90,.3);
+  padding:8px 10px;
+  border-radius:var(--r-sm);
+  font-size:12px;
+  color:#ffb8b8;
+  margin-top:8px;
+}
+.vc-motivo strong{color:#ff9a9a}
+
+.vc-link{
+  font-size:12px;
+  color:var(--accent-2);
+  margin-top:4px;
+  word-break:break-all;
+}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+.login-wrap{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:24px 20px;
+}
+.login-hero{
+  text-align:center;
+  margin-bottom:30px;
+}
+.login-hero .wordmark{
+  font-size:42px;
+  letter-spacing:5px;
+}
+.login-hero .tagline{
+  font-family:var(--font-display);
+  font-size:12px;
+  letter-spacing:3px;
+  color:var(--text-mute);
+  text-transform:uppercase;
+  margin-top:8px;
+}
+.login-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:22px 18px;
+}
+.pin-display{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:14px 0;
+}
+.pin-dot{
+  width:44px;
+  height:48px;
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  background:var(--surface-2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:22px;
+  color:#fff;
+}
+.pin-dot.filled{border-color:var(--accent);background:var(--surface-3)}
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.keypad button{
+  padding:14px 0;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:22px;
+  color:#fff;
+  transition:.1s;
+}
+.keypad button:active{background:var(--accent);transform:scale(.97)}
+.keypad button.del{background:var(--surface);color:var(--err)}
+
+/* ============================================================
+   MODALES
+   ============================================================ */
+.modal-bg{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(4px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:100;
+  animation:fadeIn .15s;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  width:100%;
+  max-width:440px;
+  max-height:90vh;
+  overflow-y:auto;
+  padding:18px;
+  box-shadow:var(--shadow-2);
+}
+.modal-title{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:18px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:14px;
+  color:#fff;
+}
+.modal-actions{
+  display:flex;
+  gap:8px;
+  margin-top:14px;
+  justify-content:flex-end;
+}
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+.toast-wrap{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:200;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  width:calc(100% - 32px);
+  max-width:380px;
+}
+.toast{
+  padding:11px 14px;
+  border-radius:var(--r-md);
+  font-size:14px;
+  box-shadow:var(--shadow-2);
+  animation:slideDown .25s;
+  border:1px solid;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
+.toast.ok{background:#11371f;border-color:var(--ok);color:#a8f0c5}
+.toast.err{background:#3b1818;border-color:var(--err);color:#ffc0c0}
+.toast.info{background:#0d2540;border-color:var(--accent);color:#bce3f7}
+
+/* ============================================================
+   LOADER
+   ============================================================ */
+.loader{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:30px;
+  color:var(--text-mute);
+}
+.spinner{
+  width:24px;
+  height:24px;
+  border:2px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:var(--text-mute);
+}
+.empty .icon{font-size:36px;display:block;margin-bottom:8px;opacity:.5}
+
+/* ============================================================
+   PODIO / DASHBOARD
+   ============================================================ */
+.podio{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  align-items:end;
+  margin:12px 0;
+}
+.podio-pos{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:12px 8px;
+  text-align:center;
+}
+.podio-pos.p1{background:linear-gradient(180deg,rgba(255,215,0,.15) 0%,var(--surface-2) 100%);border-color:#d4a017}
+.podio-pos.p2{background:linear-gradient(180deg,rgba(192,192,192,.12) 0%,var(--surface-2) 100%);border-color:#a8a8a8}
+.podio-pos.p3{background:linear-gradient(180deg,rgba(205,127,50,.12) 0%,var(--surface-2) 100%);border-color:#b07030}
+.podio-num{font-family:var(--font-display);font-weight:800;font-size:24px;color:#fff}
+.podio-nombre{font-size:12px;color:var(--text-dim);margin:4px 0;min-height:30px}
+.podio-monto{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--accent)}
+
+/* ============================================================
+   TABLAS (admin escritorio)
+   ============================================================ */
+.tabla-wrap{
+  overflow-x:auto;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+}
+.tabla{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.tabla th{
+  background:var(--surface-2);
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  text-align:left;
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.tabla td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+}
+.tabla tr:hover td{background:var(--surface-2)}
+.tabla tr:last-child td{border-bottom:0}
+
+/* ============================================================
+   SELECTORES DE MES
+   ============================================================ */
+.mes-selector{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:14px;
+}
+.mes-selector select{
+  flex:1;
+  padding:9px 12px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  color:var(--text);
+}
+
+/* ============================================================
+   CHART CONTAINER
+   ============================================================ */
+.chart-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:14px;
+  margin-bottom:12px;
+}
+.chart-box h3{
+  font-family:var(--font-display);
+  font-size:13px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:10px;
+}
+.chart-canvas-wrap{position:relative;height:240px}
+
+/* ============================================================
+   GRID PARA DASHBOARD ESCRITORIO
+   ============================================================ */
+@media (min-width:1024px){
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .dashboard-grid .span-2{grid-column:span 2}
+}
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+.hidden{display:none !important}
+.mt{margin-top:14px}
+.mb{margin-bottom:14px}
+.text-center{text-align:center}
+.text-dim{color:var(--text-dim)}
+.text-mute{color:var(--text-mute)}
+.text-accent{color:var(--accent)}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.flex-gap{display:flex;gap:8px;align-items:center}
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PANTALLA LOGIN
+     ============================================================ -->
+<div id="screenLogin" class="app">
+  <div class="login-wrap">
+    <div class="login-hero">
+      <div class="wordmark">
+        <span class="ss">SS</span> <span class="co">COMERCIAL</span>
+      </div>
+      <div class="tagline">Gestión de comisiones</div>
+    </div>
+
+    <div class="login-card">
+      <div class="form-group">
+        <label>Vendedor</label>
+        <select id="loginVendedor">
+          <option value="">-- Seleccionar --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>PIN</label>
+        <div class="pin-display" id="pinDisplay">
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+          <div class="pin-dot"></div><div class="pin-dot"></div>
+        </div>
+        <div class="keypad" id="keypad">
+          <button data-k="1">1</button>
+          <button data-k="2">2</button>
+          <button data-k="3">3</button>
+          <button data-k="4">4</button>
+          <button data-k="5">5</button>
+          <button data-k="6">6</button>
+          <button data-k="7">7</button>
+          <button data-k="8">8</button>
+          <button data-k="9">9</button>
+          <button class="del" data-k="del">←</button>
+          <button data-k="0">0</button>
+          <button class="del" data-k="clear">C</button>
+        </div>
+      </div>
+      <button id="btnLogin" class="btn btn-primary btn-block mt">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP VENDEDOR
+     ============================================================ -->
+<div id="screenVendedor" class="app hidden">
+  <div class="header">
+    <div class="wordmark">
+      <span class="ss">SS</span> <span class="co">COMERCIAL</span>
+    </div>
+    <div class="flex-gap">
+      <span class="header-user" id="userBadgeV"></span>
+      <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- INICIO -->
+    <div id="vInicio" class="v-page">
+      <div class="page-title"><span class="accent-bar"></span><span>Inicio</span></div>
+
+      <div id="bannerPendientes" class="banner banner-warn hidden" onclick="irA('vMisRegistros')">
+        ⏳ <span><strong id="bpNum">0</strong> venta(s) pendiente(s) de aprobación</span>
+      </div>
+      <div id="bannerRechazadas" class="banner banner-err hidden" onclick="irA('vMisRegistros')">
+        ⚠️ <span><strong id="brNum">0</strong> venta(s) rechazada(s) — revisar</span>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi highlight">
+          <div class="kpi-label">Comisión del mes</div>
+          <div class="kpi-value" id="kComMes">$0</div>
+          <div class="kpi-sub" id="kCuotasMes">0 cuotas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Mes próximo</div>
+          <div class="kpi-value" id="kComProx">$0</div>
+          <div class="kpi-sub">cuotas comprometidas</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Ventas del mes</div>
+          <div class="kpi-value" id="kVentas">0</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Equipo más vendido</div>
+          <div class="kpi-value small" id="kEquipoTop">—</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="irA('vCargar')">
+        ➕ Cargar nueva venta
+      </button>
+    </div>
+
+    <!-- CARGAR VENTA -->
+    <div id="vCargar" class="v-page hidden">
+      <div class="page-title"><span class="accent-bar"></span><span id="cargarTitulo">Nueva venta</span></div>
+
+      <div class="form-group">
+        <label>Fecha de venta <span class="req">*</span></label>
+        <input type="date" id="fVFecha">
+      </div>
+
+      <div class="form-group">
+        <label>Localidad <span class="req">*</span></label>
+        <select id="fVLocalidad"></select>
+      </div>
+
+      <div class="form-group">
+        <label>N° de cliente</label>
+        <input type="text" id="fVCliente" inputmode="numeric" placeholder="Ej: 123456">
+      </div>
+
+      <div class="form-group">
+        <label>Equipo <span class="req">*</span></label>
+        <select id="fVEquipo">
+          <option value="">-- Seleccionar --</option>
+        </select>
+        <span class="hint" id="fVEquipoInfo"></span>
+      </div>
+
+      <div class="form-group">
+        <label>Precio de venta <span class="req">*</span></label>
+        <input type="number" id="fVPrecio" inputmode="numeric" disabled>
+        <span class="hint">Precio del catálogo (solo editable por admin)</span>
+      </div>
+
+      <div class="form-group">
+        <label>Forma de pago <span class="req">*</span></label>
+        <select id="fVFormaPago">
+          <option value="Contado">Contado</option>
+          <option value="2 cuotas">2 cuotas</option>
+          <option value="3 cuotas">3 cuotas</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Link del ticket (Aria) <span class="req">*</span></label>
+        <input type="url" id="fVLink" placeholder="https://...">
+        <span class="hint">Obligatorio. Pegá acá el link del ticket en Aria.</span>
+      </div>
+
+      <!-- Preview comisión -->
+      <div id="commissionPreview" class="commission-preview hidden">
+        <div class="cp-title">Vas a cobrar</div>
+        <div class="cp-total" id="cpTotal">$0</div>
+        <div class="cp-breakdown" id="cpBreakdown"></div>
+      </div>
+
+      <div class="flex-gap mt">
+        <button class="btn btn-ghost" onclick="irA('vInicio')">Cancelar</button>
+        <button class="btn btn-primary" style="flex:1" onclick="enviarVenta()">Registrar venta</button>
+      </div>
+    </div>
+
+    <!-- MIS REGISTROS -->
+    <div id="vMisRegistros" class="v-page hidden">
+      <div class="page-title"><span class="accent-bar"></span><span>Mis registros</span></div>
+
+      <div class="mes-selector">
+        <select id="vMesSel"></select>
+        <button class="btn btn-secondary btn-sm" onclick="cargarMisRegistros()">Actualizar</button>
+      </div>
+
+      <div id="vListaRegistros">
+        <div class="loader"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav vendedor -->
+  <div class="bottomnav">
+    <button data-nav="vInicio" class="active">
+      <span class="icon">🏠</span>Inicio
+    </button>
+    <button data-nav="vCargar">
+      <span class="icon">➕</span>Cargar
+    </button>
+    <button data-nav="vMisRegistros">
+      <span class="icon">📋</span>Registros
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP ADMIN
+     ============================================================ -->
+<div id="screenAdmin" class="app admin-desktop hidden">
+  <div class="admin-layout" id="adminLayoutMobile">
+    <!-- En mobile NO mostramos sidebar, en escritorio sí -->
+    <aside class="sidebar hidden" id="adminSidebar">
+      <div class="sidebar-header">
+        <div class="wordmark">
+          <span class="ss">SS</span> <span class="co">COMERCIAL</span>
+        </div>
+        <div class="tagline" style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--text-mute);margin-top:4px">PANEL ADMIN</div>
+      </div>
+      <nav>
+        <button data-anav="aDashboard" class="active">📊 Dashboard</button>
+        <button data-anav="aPendientes">⏳ Pendientes <span id="adNumPend" class="estado-badge pendiente hidden" style="margin-left:auto">0</span></button>
+        <button data-anav="aVentas">💼 Ventas</button>
+        <button data-anav="aEquipos">📦 Equipos</button>
+        <button data-anav="aCertificacion">📥 Certificación</button>
+      </nav>
+      <div class="sidebar-foot">
+        <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <div class="header" id="adminHeaderMobile">
+        <div class="wordmark">
+          <span class="ss">SS</span> <span class="co">COMERCIAL</span>
+        </div>
+        <div class="flex-gap">
+          <span class="header-user">ADMIN</span>
+          <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- DASHBOARD -->
+        <div id="aDashboard" class="a-page">
+          <div class="page-title"><span class="accent-bar"></span><span>Dashboard</span></div>
+
+          <div class="mes-selector">
+            <select id="aMesSel"></select>
+            <button class="btn btn-secondary btn-sm" onclick="cargarDashboard()">Actualizar</button>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi highlight">
+              <div class="kpi-label">Comisiones totales aprobadas</div>
+              <div class="kpi-value" id="dKAprob">$0</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Pendientes (estimado)</div>
+              <div class="kpi-value" id="dKPend">$0</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Ventas del mes</div>
+              <div class="kpi-value" id="dKVentas">0</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Equipo más vendido</div>
+              <div class="kpi-value small" id="dKEquipoTop">—</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🏆 Podio del mes</div>
+            <div class="podio" id="podioContainer"></div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="chart-box">
+              <h3>Comisiones por vendedor</h3>
+              <div class="chart-canvas-wrap"><canvas id="chartVendedores"></canvas></div>
+            </div>
+            <div class="chart-box">
+              <h3>Equipos más vendidos</h3>
+              <div class="chart-canvas-wrap"><canvas id="chartEquipos"></canvas></div>
+            </div>
+            <div class="chart-box">
+              <h3>Forma de pago</h3>
+              <div class="chart-canvas-wrap"><canvas id="chartFormaPago"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PENDIENTES -->
+        <div id="aPendientes" class="a-page hidden">
+          <div class="page-title"><span class="accent-bar"></span><span>Pendientes de aprobación</span></div>
+          <div class="mes-selector">
+            <select id="apMesSel"></select>
+            <button class="btn btn-secondary btn-sm" onclick="cargarPendientes()">Actualizar</button>
+          </div>
+          <div id="aListaPendientes">
+            <div class="loader"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- VENTAS -->
+        <div id="aVentas" class="a-page hidden">
+          <div class="page-title"><span class="accent-bar"></span><span>Ventas del mes</span></div>
+          <div class="mes-selector">
+            <select id="avMesSel"></select>
+            <input type="text" id="avFiltro" placeholder="Buscar vendedor, cliente o equipo..." style="flex:2;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text)">
+            <button class="btn btn-secondary btn-sm" onclick="cargarVentasAdmin()">Buscar</button>
+          </div>
+          <div id="aListaVentas">
+            <div class="loader"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- EQUIPOS -->
+        <div id="aEquipos" class="a-page hidden">
+          <div class="page-title"><span class="accent-bar"></span><span>Catálogo de equipos</span></div>
+          <button class="btn btn-primary btn-block mb" onclick="abrirModalEquipo()">➕ Agregar equipo</button>
+          <div id="aListaEquipos">
+            <div class="loader"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- CERTIFICACIÓN -->
+        <div id="aCertificacion" class="a-page hidden">
+          <div class="page-title"><span class="accent-bar"></span><span>Certificación mensual</span></div>
+          <div class="card">
+            <div class="card-title">Generar Excel</div>
+            <p class="text-dim mb">Descarga un Excel con las comisiones aprobadas del mes (incluye cuotas de meses anteriores que caen en este mes).</p>
+            <div class="form-group">
+              <label>Mes a certificar</label>
+              <select id="acMesSel"></select>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="descargarCertificacion()" id="btnCertif">
+              📥 Descargar Excel
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom nav admin (mobile) -->
+      <div class="bottomnav" id="adminBottomNav">
+        <button data-anav="aDashboard" class="active">
+          <span class="icon">📊</span>Inicio
+        </button>
+        <button data-anav="aPendientes">
+          <span class="icon">⏳</span>Pendientes
+        </button>
+        <button data-anav="aVentas">
+          <span class="icon">💼</span>Ventas
+        </button>
+        <button data-anav="aEquipos">
+          <span class="icon">📦</span>Equipos
+        </button>
+        <button data-anav="aCertificacion">
+          <span class="icon">📥</span>Certif.
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor de toasts -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Contenedor de modales -->
+<div id="modalWrap"></div>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN
+// ============================================================
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwaMnqylrG2Gr8Abdd-GmgkWeJHp5d5ueEAnvWVNPbLMlmT8pL3OchyVN5k0bfbXo7a/exec";
+
+// Estado global
+const state = {
+  usuario: null,        // {tipo, nombre, id, localidad}
+  vendedores: [],
+  equipos: [],
+  localidades: [],
+  meses: [],
+  mesActual: "",
+  pinBuffer: "",
+  charts: {},
+  mesActualNombre: ""
+};
+
+// ============================================================
+// API
+// ============================================================
+async function api(accion, datos = {}) {
+  try {
+    const body = Object.assign({ accion }, datos);
+    const resp = await fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+    const json = await resp.json();
+    return json;
+  } catch (e) {
+    return { ok: false, error: "Error de red: " + e.message };
+  }
+}
+
+async function apiGet(accion, datos = {}) {
+  try {
+    const params = new URLSearchParams(Object.assign({ accion }, datos));
+    const resp = await fetch(WEB_APP_URL + "?" + params.toString());
+    const json = await resp.json();
+    return json;
+  } catch (e) {
+    return { ok: false, error: "Error de red: " + e.message };
+  }
+}
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function $(id){return document.getElementById(id)}
+function toast(msg, tipo = "info", ms = 3200) {
+  const el = document.createElement("div");
+  el.className = "toast " + tipo;
+  el.textContent = msg;
+  $("toastWrap").appendChild(el);
+  setTimeout(() => el.remove(), ms);
+}
+function fmtMoney(n) {
+  n = Number(n) || 0;
+  return "$" + n.toLocaleString("es-AR", { maximumFractionDigits: 0 });
+}
+function fmtMoneyDec(n) {
+  n = Number(n) || 0;
+  return "$" + n.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function hoyISO() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+function ISOaDDMMYYYY(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return d + "/" + m + "/" + y;
+}
+function obtenerMesDeFecha(iso) {
+  if (!iso) return nombreMesActual();
+  const [y, m] = iso.split("-").map(Number);
+  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  return meses[m - 1] + y;
+}
+function nombreMesActual() {
+  const d = new Date();
+  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  return meses[d.getMonth()] + d.getFullYear();
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+async function initLogin() {
+  const r = await api("obtenerVendedores");
+  if (r.ok) {
+    state.vendedores = r.vendedores || [];
+    const sel = $("loginVendedor");
+    sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+    state.vendedores.forEach(v => {
+      const op = document.createElement("option");
+      op.value = v.nombre;
+      op.textContent = v.nombre;
+      sel.appendChild(op);
+    });
+  } else {
+    toast("Error cargando vendedores: " + (r.error || ""), "err");
+  }
+}
+
+function updatePinDisplay() {
+  const dots = $("pinDisplay").querySelectorAll(".pin-dot");
+  dots.forEach((d, i) => {
+    if (i < state.pinBuffer.length) {
+      d.classList.add("filled");
+      d.textContent = "•";
+    } else {
+      d.classList.remove("filled");
+      d.textContent = "";
+    }
+  });
+}
+
+function setupKeypad() {
+  $("keypad").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const k = btn.dataset.k;
+    if (k === "del") {
+      state.pinBuffer = state.pinBuffer.slice(0, -1);
+    } else if (k === "clear") {
+      state.pinBuffer = "";
+    } else if (state.pinBuffer.length < 4) {
+      state.pinBuffer += k;
+    }
+    updatePinDisplay();
+  });
+}
+
+async function hacerLogin() {
+  const nombre = $("loginVendedor").value;
+  const pin = state.pinBuffer;
+
+  if (!pin) { toast("Ingresá el PIN", "err"); return; }
+  if (pin.length !== 4) { toast("El PIN debe tener 4 dígitos", "err"); return; }
+
+  $("btnLogin").disabled = true;
+  $("btnLogin").textContent = "Verificando...";
+
+  const r = await api("login", { nombre, pin });
+
+  $("btnLogin").disabled = false;
+  $("btnLogin").textContent = "Ingresar";
+
+  if (r.ok) {
+    state.usuario = r;
+    state.pinBuffer = "";
+    updatePinDisplay();
+
+    if (r.tipo === "admin") {
+      mostrarPantalla("screenAdmin");
+      initAdmin();
+    } else {
+      mostrarPantalla("screenVendedor");
+      $("userBadgeV").textContent = r.nombre.toUpperCase();
+      initVendedor();
+    }
+  } else {
+    toast(r.error || "Error de login", "err");
+    state.pinBuffer = "";
+    updatePinDisplay();
+  }
+}
+
+function mostrarPantalla(id) {
+  ["screenLogin", "screenVendedor", "screenAdmin"].forEach(s => {
+    $(s).classList.toggle("hidden", s !== id);
+  });
+}
+
+function cerrarSesion() {
+  state.usuario = null;
+  state.pinBuffer = "";
+  updatePinDisplay();
+  mostrarPantalla("screenLogin");
+  $("loginVendedor").value = "";
+}
+
+// ============================================================
+// VENDEDOR - INIT
+// ============================================================
+async function initVendedor() {
+  // Cargar equipos, localidades, meses
+  const [eqR, locR, mesR] = await Promise.all([
+    api("obtenerEquipos"),
+    api("obtenerLocalidades"),
+    api("obtenerMesesDisponibles")
+  ]);
+  if (eqR.ok) state.equipos = eqR.equipos || [];
+  if (locR.ok) state.localidades = locR.localidades || [];
+  if (mesR.ok) state.meses = mesR.meses || [];
+
+  state.mesActualNombre = nombreMesActual();
+  if (!state.meses.includes(state.mesActualNombre)) {
+    state.meses.unshift(state.mesActualNombre);
+  }
+
+  // Llenar selects
+  llenarSelectMeses("vMesSel", state.mesActualNombre);
+
+  // Cargar inicio
+  irA("vInicio");
+  setupBottomNav();
+  cargarInicioVendedor();
+}
+
+function setupBottomNav() {
+  document.querySelectorAll(".bottomnav button[data-nav]").forEach(b => {
+    b.onclick = () => irA(b.dataset.nav);
+  });
+  document.querySelectorAll(".bottomnav button[data-anav]").forEach(b => {
+    b.onclick = () => irAdmin(b.dataset.anav);
+  });
+  if ($("adminSidebar")) {
+    $("adminSidebar").querySelectorAll("button[data-anav]").forEach(b => {
+      b.onclick = () => irAdmin(b.dataset.anav);
+    });
+  }
+}
+
+function irA(pageId) {
+  document.querySelectorAll(".v-page").forEach(p => p.classList.add("hidden"));
+  $(pageId).classList.remove("hidden");
+  document.querySelectorAll(".bottomnav button[data-nav]").forEach(b => {
+    b.classList.toggle("active", b.dataset.nav === pageId);
+  });
+
+  if (pageId === "vInicio") cargarInicioVendedor();
+  if (pageId === "vCargar") prepararFormVenta();
+  if (pageId === "vMisRegistros") cargarMisRegistros();
+}
+
+// ============================================================
+// VENDEDOR - INICIO
+// ============================================================
+async function cargarInicioVendedor() {
+  const r = await api("obtenerResumen", { vendedor: state.usuario.nombre, mes: state.mesActualNombre });
+  if (!r.ok) { toast("Error cargando resumen", "err"); return; }
+
+  $("kComMes").textContent = fmtMoney(r.totalComision);
+  $("kCuotasMes").textContent = (r.cantidadCuotasMes || 0) + " cuota(s)";
+  $("kComProx").textContent = fmtMoney(r.totalComisionMesProximo);
+  $("kVentas").textContent = r.cantidadVentas || 0;
+  $("kEquipoTop").textContent = r.equipoTop || "—";
+
+  // Banners
+  const bp = $("bannerPendientes"), br = $("bannerRechazadas");
+  if (r.pendientesV > 0) {
+    bp.classList.remove("hidden");
+    $("bpNum").textContent = r.pendientesV;
+  } else bp.classList.add("hidden");
+
+  if (r.rechazadasV > 0) {
+    br.classList.remove("hidden");
+    $("brNum").textContent = r.rechazadasV;
+  } else br.classList.add("hidden");
+}
+
+// ============================================================
+// VENDEDOR - CARGAR VENTA
+// ============================================================
+function prepararFormVenta() {
+  $("cargarTitulo").textContent = "Nueva venta";
+
+  // Fecha hoy
+  $("fVFecha").value = hoyISO();
+
+  // Localidades
+  const selL = $("fVLocalidad");
+  selL.innerHTML = '<option value="">-- Seleccionar --</option>';
+  state.localidades.forEach(l => {
+    const o = document.createElement("option");
+    o.value = l.nombre;
+    o.textContent = l.nombre;
+    if (l.nombre === state.usuario.localidad) o.selected = true;
+    selL.appendChild(o);
+  });
+
+  // Equipos
+  const selE = $("fVEquipo");
+  selE.innerHTML = '<option value="">-- Seleccionar --</option>';
+  state.equipos.forEach(e => {
+    const o = document.createElement("option");
+    o.value = e.id;
+    o.textContent = e.nombre;
+    selE.appendChild(o);
+  });
+
+  // Limpiar otros
+  $("fVCliente").value = "";
+  $("fVPrecio").value = "";
+  $("fVLink").value = "";
+  $("fVFormaPago").value = "Contado";
+  $("fVEquipoInfo").textContent = "";
+  $("commissionPreview").classList.add("hidden");
+
+  // Listeners para recálculo
+  $("fVEquipo").onchange = onCambioEquipo;
+  $("fVFormaPago").onchange = recalcularPreview;
+  $("fVPrecio").oninput = recalcularPreview;
+}
+
+function onCambioEquipo() {
+  const eqId = $("fVEquipo").value;
+  const eq = state.equipos.find(e => String(e.id) === String(eqId));
+  if (!eq) {
+    $("fVEquipoInfo").textContent = "";
+    $("fVPrecio").value = "";
+    $("commissionPreview").classList.add("hidden");
+    return;
+  }
+  // Precio del catálogo (no editable por vendedor)
+  $("fVPrecio").value = eq.precioVenta;
+
+  const tipoTexto = eq.tipoComision === "Fijo"
+    ? `Comisión fija: ${fmtMoney(eq.valorComision)}`
+    : `Comisión: ${(eq.valorComision * 100).toFixed(1)}% sobre precio`;
+  $("fVEquipoInfo").textContent = tipoTexto;
+
+  recalcularPreview();
+}
+
+function recalcularPreview() {
+  const eqId = $("fVEquipo").value;
+  const eq = state.equipos.find(e => String(e.id) === String(eqId));
+  if (!eq) return;
+
+  const precio = Number($("fVPrecio").value) || eq.precioVenta;
+  const formaPago = $("fVFormaPago").value;
+  const fechaISO = $("fVFecha").value || hoyISO();
+
+  let comisionTotal = eq.tipoComision === "Fijo"
+    ? eq.valorComision
+    : precio * eq.valorComision;
+
+  let cuotas = 1;
+  if (formaPago.includes("3")) cuotas = 3;
+  else if (formaPago.includes("2")) cuotas = 2;
+
+  const comisionPorCuota = comisionTotal / cuotas;
+
+  // Mostrar preview
+  $("commissionPreview").classList.remove("hidden");
+  $("cpTotal").textContent = fmtMoney(comisionTotal);
+
+  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const [y, m] = fechaISO.split("-").map(Number);
+  let html = "";
+  for (let i = 0; i < cuotas; i++) {
+    let mm = m - 1 + i;
+    let yy = y;
+    while (mm > 11) { mm -= 12; yy++; }
+    const etiqueta = cuotas > 1 ? `${meses[mm]} ${yy} (cuota ${i + 1}/${cuotas})` : `${meses[mm]} ${yy}`;
+    html += `<div class="cp-line"><span>${etiqueta}</span><span>${fmtMoney(comisionPorCuota)}</span></div>`;
+  }
+  $("cpBreakdown").innerHTML = html;
+}
+
+async function enviarVenta() {
+  const fechaISO = $("fVFecha").value;
+  const localidad = $("fVLocalidad").value;
+  const cliente = $("fVCliente").value.trim();
+  const eqId = $("fVEquipo").value;
+  const precio = $("fVPrecio").value;
+  const formaPago = $("fVFormaPago").value;
+  const link = $("fVLink").value.trim();
+
+  if (!fechaISO) return toast("Falta la fecha de venta", "err");
+  if (!localidad) return toast("Falta la localidad", "err");
+  if (!eqId) return toast("Falta el equipo", "err");
+  if (!link) return toast("El link del ticket es obligatorio", "err");
+
+  // Validación básica de URL
+  if (!/^https?:\/\//i.test(link)) {
+    return toast("El link debe empezar con http:// o https://", "err");
+  }
+
+  const datos = {
+    vendedor: state.usuario.nombre,
+    fechaVenta: ISOaDDMMYYYY(fechaISO),
+    localidad,
+    nroCliente: cliente,
+    equipoId: eqId,
+    formaPago,
+    link
+    // precio se ignora en backend (toma del catálogo)
+  };
+
+  toast("Registrando venta...", "info");
+  const r = await api("registrarVenta", datos);
+  if (r.ok) {
+    toast(`Venta registrada. Comisión total: ${fmtMoney(r.comisionTotal)} (${r.cantidadCuotas} cuota/s)`, "ok", 4500);
+    prepararFormVenta();
+    setTimeout(() => irA("vInicio"), 800);
+  } else {
+    toast("Error: " + (r.error || "no se pudo registrar"), "err");
+  }
+}
+
+// ============================================================
+// VENDEDOR - MIS REGISTROS
+// ============================================================
+function llenarSelectMeses(selectId, mesDefault) {
+  const sel = $(selectId);
+  sel.innerHTML = "";
+  state.meses.forEach(m => {
+    const o = document.createElement("option");
+    o.value = m;
+    o.textContent = m;
+    if (m === mesDefault) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.onchange = () => {
+    if (selectId === "vMesSel") cargarMisRegistros();
+    if (selectId === "aMesSel") cargarDashboard();
+    if (selectId === "apMesSel") cargarPendientes();
+    if (selectId === "avMesSel") cargarVentasAdmin();
+    if (selectId === "acMesSel") {}
+  };
+}
+
+async function cargarMisRegistros() {
+  const mes = $("vMesSel").value || state.mesActualNombre;
+  const cont = $("vListaRegistros");
+  cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+
+  const r = await api("obtenerMisRegistros", {
+    vendedor: state.usuario.nombre,
+    mes
+  });
+
+  if (!r.ok) { cont.innerHTML = '<div class="empty">Error: ' + (r.error || "") + '</div>'; return; }
+  if (!r.ventas || r.ventas.length === 0) {
+    cont.innerHTML = '<div class="empty"><span class="icon">📭</span>Sin registros en este mes</div>';
+    return;
+  }
+
+  // Agrupar por idVenta (las cuotas hermanas se muestran juntas)
+  const grupos = {};
+  r.ventas.forEach(v => {
+    const k = v.idVenta || ("solo_" + v.fila);
+    if (!grupos[k]) grupos[k] = [];
+    grupos[k].push(v);
+  });
+
+  let html = "";
+  Object.values(grupos).forEach(cuotas => {
+    cuotas.sort((a, b) => (a.nroCuota || "").localeCompare(b.nroCuota || ""));
+    const principal = cuotas[0];  // cuota 1/N
+    const estadoClase = principal.estado.toLowerCase();
+
+    let cuotasHtml = "";
+    if (cuotas.length > 1) {
+      cuotasHtml = '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);font-size:12px;color:var(--text-dim)">';
+      cuotas.forEach(c => {
+        cuotasHtml += `<div class="cp-line" style="padding:2px 0"><span>${c.nroCuota} — ${c.fecha}</span><span style="color:var(--accent)">${fmtMoney(c.comisionCuota)}</span></div>`;
+      });
+      cuotasHtml += '</div>';
+    }
+
+    let acciones = "";
+    if (principal.estado === "Rechazada") {
+      acciones = `
+        <button class="btn btn-secondary btn-sm" onclick='editarVentaModal(${JSON.stringify(principal).replace(/'/g, "&apos;")}, "${mes}")'>Editar</button>
+        <button class="btn btn-danger btn-sm" onclick='eliminarVentaConfirm(${principal.fila}, "${mes}")'>Eliminar</button>
+      `;
+    }
+
+    html += `
+      <div class="venta-card ${estadoClase}">
+        <div class="vc-top">
+          <div>
+            <div class="vc-equipo">${principal.equipo}</div>
+            <div class="vc-fecha">${principal.fecha} · ${principal.localidad || "—"}</div>
+          </div>
+          <span class="estado-badge ${estadoClase}">${principal.estado}</span>
+        </div>
+        <div class="vc-meta">
+          <span>Cliente: <strong>${principal.cliente || "—"}</strong></span>
+          <span>Forma: <strong>${principal.formaPago}</strong></span>
+          <span>Precio: <strong>${fmtMoney(principal.precioVenta)}</strong></span>
+        </div>
+        <div class="vc-link">🔗 <a href="${principal.link}" target="_blank">${principal.link}</a></div>
+        ${cuotasHtml}
+        <div class="vc-foot">
+          <div>
+            <div class="vc-cuota">Comisión total venta</div>
+            <div class="vc-comision">${fmtMoney(principal.comisionTotal)}</div>
+          </div>
+          <div class="vc-actions">${acciones}</div>
+        </div>
+        ${principal.motivoRechazo ? `<div class="vc-motivo"><strong>Motivo del rechazo:</strong> ${principal.motivoRechazo}</div>` : ""}
+      </div>`;
+  });
+
+  cont.innerHTML = html;
+}
+
+function editarVentaModal(venta, mes) {
+  // Reabrir el form de carga con los datos prellenados, y marcar que es edición
+  irA("vCargar");
+  setTimeout(() => {
+    $("cargarTitulo").textContent = "Editar venta rechazada";
+    // Convertir fecha
+    const [d, m, y] = venta.fecha.split("/");
+    $("fVFecha").value = `${y}-${m}-${d}`;
+    $("fVLocalidad").value = venta.localidad;
+    $("fVCliente").value = venta.cliente;
+    // Buscar equipo
+    const eq = state.equipos.find(e => e.nombre === venta.equipo);
+    if (eq) $("fVEquipo").value = eq.id;
+    onCambioEquipo();
+    $("fVFormaPago").value = venta.formaPago;
+    $("fVLink").value = venta.link;
+    recalcularPreview();
+
+    // Cambiar botón submit
+    const btn = $("vCargar").querySelector('button[onclick="enviarVenta()"]');
+    btn.textContent = "Guardar cambios";
+    btn.setAttribute("onclick", `enviarEdicion(${venta.fila}, "${mes}")`);
+  }, 100);
+}
+
+async function enviarEdicion(fila, mes) {
+  const fechaISO = $("fVFecha").value;
+  const datos = {
+    vendedor: state.usuario.nombre,
+    fechaVenta: ISOaDDMMYYYY(fechaISO),
+    localidad: $("fVLocalidad").value,
+    nroCliente: $("fVCliente").value.trim(),
+    equipoId: $("fVEquipo").value,
+    formaPago: $("fVFormaPago").value,
+    link: $("fVLink").value.trim(),
+    fila,
+    mes
+  };
+  if (!datos.link) return toast("El link del ticket es obligatorio", "err");
+
+  toast("Actualizando...", "info");
+  const r = await api("editarVenta", datos);
+  if (r.ok) {
+    toast("Venta actualizada. Vuelve a Pendiente.", "ok");
+    irA("vMisRegistros");
+    // restaurar botón
+    const btn = $("vCargar").querySelector('button[onclick^="enviarEdicion"]');
+    if (btn) {
+      btn.textContent = "Registrar venta";
+      btn.setAttribute("onclick", "enviarVenta()");
+    }
+  } else {
+    toast("Error: " + (r.error || ""), "err");
+  }
+}
+
+function eliminarVentaConfirm(fila, mes) {
+  abrirModal({
+    titulo: "Eliminar venta",
+    contenido: "<p>¿Confirmás que querés eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.</p>",
+    acciones: [
+      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
+      { txt: "Eliminar", clase: "btn-danger", accion: async () => {
+        const r = await api("eliminarVenta", { fila, mes });
+        cerrarModal();
+        if (r.ok) {
+          toast("Venta eliminada", "ok");
+          cargarMisRegistros();
+        } else toast("Error: " + (r.error || ""), "err");
+      }}
+    ]
+  });
+}
+
+// ============================================================
+// MODALES
+// ============================================================
+function abrirModal({ titulo, contenido, acciones }) {
+  const wrap = document.createElement("div");
+  wrap.className = "modal-bg";
+  wrap.id = "currentModal";
+  let accsHtml = "";
+  (acciones || []).forEach((a, i) => {
+    accsHtml += `<button class="btn ${a.clase || ""}" data-i="${i}">${a.txt}</button>`;
+  });
+  wrap.innerHTML = `<div class="modal">
+    <div class="modal-title">${titulo}</div>
+    <div>${contenido}</div>
+    <div class="modal-actions">${accsHtml}</div>
+  </div>`;
+  $("modalWrap").appendChild(wrap);
+  wrap.querySelectorAll("button[data-i]").forEach(b => {
+    b.onclick = () => {
+      const a = acciones[Number(b.dataset.i)];
+      if (a && a.accion) a.accion();
+    };
+  });
+}
+function cerrarModal() {
+  const m = $("currentModal");
+  if (m) m.remove();
+}
+
+// ============================================================
+// ADMIN - INIT
+// ============================================================
+async function initAdmin() {
+  const [eqR, locR, mesR] = await Promise.all([
+    api("obtenerEquipos"),
+    api("obtenerLocalidades"),
+    api("obtenerMesesDisponibles")
+  ]);
+  if (eqR.ok) state.equipos = eqR.equipos || [];
+  if (locR.ok) state.localidades = locR.localidades || [];
+  if (mesR.ok) state.meses = mesR.meses || [];
+
+  state.mesActualNombre = nombreMesActual();
+  if (!state.meses.includes(state.mesActualNombre)) {
+    state.meses.unshift(state.mesActualNombre);
+  }
+
+  llenarSelectMeses("aMesSel", state.mesActualNombre);
+  llenarSelectMeses("apMesSel", state.mesActualNombre);
+  llenarSelectMeses("avMesSel", state.mesActualNombre);
+  llenarSelectMeses("acMesSel", state.mesActualNombre);
+
+  setupAdminLayout();
+  setupBottomNav();
+  irAdmin("aDashboard");
+}
+
+function setupAdminLayout() {
+  // Mostrar sidebar en escritorio, bottomnav en mobile
+  const aplicar = () => {
+    const desktop = window.innerWidth >= 1024;
+    $("adminSidebar").classList.toggle("hidden", !desktop);
+    $("adminBottomNav").classList.toggle("hidden", desktop);
+    $("adminHeaderMobile").classList.toggle("hidden", desktop);
+  };
+  aplicar();
+  window.addEventListener("resize", aplicar);
+}
+
+function irAdmin(pageId) {
+  document.querySelectorAll(".a-page").forEach(p => p.classList.add("hidden"));
+  $(pageId).classList.remove("hidden");
+  document.querySelectorAll("[data-anav]").forEach(b => {
+    b.classList.toggle("active", b.dataset.anav === pageId);
+  });
+
+  if (pageId === "aDashboard") cargarDashboard();
+  if (pageId === "aPendientes") cargarPendientes();
+  if (pageId === "aVentas") cargarVentasAdmin();
+  if (pageId === "aEquipos") cargarEquiposAdmin();
+}
+
+// ============================================================
+// ADMIN - DASHBOARD
+// ============================================================
+async function cargarDashboard() {
+  const mes = $("aMesSel").value || state.mesActualNombre;
+  const [resR, anR] = await Promise.all([
+    api("obtenerResumen", { vendedor: "ADMIN", mes }),
+    api("obtenerAnalisis", { mes })
+  ]);
+
+  if (resR.ok) {
+    $("dKAprob").textContent = fmtMoney(resR.totalComision);
+    $("dKVentas").textContent = resR.cantidadVentas || 0;
+    $("dKEquipoTop").textContent = resR.equipoTop || "—";
+  }
+
+  if (anR.ok && anR.analisis) {
+    const a = anR.analisis;
+    $("dKPend").textContent = fmtMoney(a.totalPendientes || 0);
+
+    // Pendientes en sidebar badge
+    if (resR.ok) {
+      const badge = $("adNumPend");
+      if (resR.pendientesV > 0) {
+        badge.textContent = resR.pendientesV;
+        badge.classList.remove("hidden");
+      } else badge.classList.add("hidden");
+    }
+
+    // Podio
+    renderPodio(a.podio || []);
+
+    // Charts
+    renderChartVendedores(a.porVendedor || {});
+    renderChartEquipos(a.porEquipo || {});
+    renderChartFormaPago(a.porFormaPago || {});
+  }
+}
+
+function renderPodio(podio) {
+  const cont = $("podioContainer");
+  if (!podio.length) {
+    cont.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin datos</div>';
+    return;
+  }
+  // Mostrar siempre 3 posiciones (rellenar con vacío si hay menos)
+  const orden = [1, 0, 2]; // visualmente 2do, 1ro, 3ro
+  const filas = [podio[1] || null, podio[0] || null, podio[2] || null];
+  const clases = ["p2", "p1", "p3"];
+  const nums = ["2", "1", "3"];
+  let html = "";
+  for (let i = 0; i < 3; i++) {
+    const p = filas[i];
+    html += `<div class="podio-pos ${clases[i]}">
+      <div class="podio-num">${nums[i]}</div>
+      <div class="podio-nombre">${p ? p.vendedor : "—"}</div>
+      <div class="podio-monto">${p ? fmtMoney(p.monto) : "—"}</div>
+    </div>`;
+  }
+  cont.innerHTML = html;
+}
+
+function destroyChart(id) {
+  if (state.charts[id]) {
+    state.charts[id].destroy();
+    delete state.charts[id];
+  }
+}
+
+function renderChartVendedores(data) {
+  destroyChart("vendedores");
+  const labels = Object.keys(data);
+  const valores = labels.map(k => data[k].monto);
+  if (!labels.length) return;
+  state.charts.vendedores = new Chart($("chartVendedores"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Comisión aprobada",
+        data: valores,
+        backgroundColor: "#1e9cd7",
+        borderRadius: 3
+      }]
+    },
+    options: chartOpts({ moneyY: true })
+  });
+}
+
+function renderChartEquipos(data) {
+  destroyChart("equipos");
+  const labels = Object.keys(data);
+  const valores = labels.map(k => data[k]);
+  if (!labels.length) return;
+  state.charts.equipos = new Chart($("chartEquipos"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Cantidad vendida",
+        data: valores,
+        backgroundColor: "#42b8ee",
+        borderRadius: 3
+      }]
+    },
+    options: chartOpts({ horizontal: true })
+  });
+}
+
+function renderChartFormaPago(data) {
+  destroyChart("formaPago");
+  const labels = Object.keys(data);
+  const valores = labels.map(k => data[k]);
+  if (!labels.length) return;
+  state.charts.formaPago = new Chart($("chartFormaPago"), {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [{
+        data: valores,
+        backgroundColor: ["#1e9cd7", "#42b8ee", "#0b6695", "#2fbf71"]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: "#8aa3c8", font: { family: "Barlow" } } }
+      }
+    }
+  });
+}
+
+function chartOpts({ moneyY, horizontal } = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: horizontal ? "y" : "x",
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      x: {
+        ticks: { color: "#8aa3c8" },
+        grid: { color: "#1d3258" }
+      },
+      y: {
+        ticks: {
+          color: "#8aa3c8",
+          callback: function(v) {
+            return moneyY ? "$" + Number(v).toLocaleString("es-AR") : v;
+          }
+        },
+        grid: { color: "#1d3258" }
+      }
+    }
+  };
+}
+
+// ============================================================
+// ADMIN - PENDIENTES
+// ============================================================
+async function cargarPendientes() {
+  const mes = $("apMesSel").value || state.mesActualNombre;
+  const cont = $("aListaPendientes");
+  cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+
+  const r = await api("obtenerPendientes", { mes });
+  if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
+  if (!r.ventas.length) {
+    cont.innerHTML = '<div class="empty"><span class="icon">✅</span>Sin pendientes</div>';
+    return;
+  }
+
+  let html = "";
+  r.ventas.forEach(v => {
+    const d = v.datos;
+    // d = [fechaVenta, fechaCarga, localidad, vendedor, cliente, equipo, precio, formaPago, nroCuota, comCuota, comTotal, tipoCom, valorCom, estado, fechaApr, motivo, link, idVenta]
+    html += `
+      <div class="venta-card pendiente">
+        <div class="vc-top">
+          <div>
+            <div class="vc-equipo">${d[5]} — ${d[3]}</div>
+            <div class="vc-fecha">${d[0]} · ${d[2] || "—"}</div>
+          </div>
+          <span class="estado-badge pendiente">Pendiente</span>
+        </div>
+        <div class="vc-meta">
+          <span>Cliente: <strong>${d[4] || "—"}</strong></span>
+          <span>Forma: <strong>${d[7]}</strong></span>
+          <span>Precio: <strong>${fmtMoney(d[6])}</strong></span>
+          <span>Cuotas: <strong>${(d[8] || "").split("/")[1] || 1}</strong></span>
+        </div>
+        <div class="vc-link">🔗 <a href="${d[16]}" target="_blank">${d[16]}</a></div>
+        <div class="vc-foot">
+          <div>
+            <div class="vc-cuota">Comisión total</div>
+            <div class="vc-comision">${fmtMoney(d[10])}</div>
+          </div>
+          <div class="vc-actions">
+            <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${mes}")'>Rechazar</button>
+            <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${mes}")'>Aprobar</button>
+          </div>
+        </div>
+      </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+async function aprobarVenta(fila, mes) {
+  abrirModal({
+    titulo: "Aprobar venta",
+    contenido: "<p>Esta acción aprueba la venta y todas sus cuotas hermanas (si las hay).</p>",
+    acciones: [
+      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
+      { txt: "Aprobar", clase: "btn-success", accion: async () => {
+        cerrarModal();
+        toast("Aprobando...", "info");
+        const r = await api("aprobarVenta", { fila, mes });
+        if (r.ok) {
+          let msg = "Venta aprobada";
+          if (r.cuotasHermanasActualizadas > 0) {
+            msg += ` (+ ${r.cuotasHermanasActualizadas} cuota/s hermana/s)`;
+          }
+          toast(msg, "ok");
+          cargarPendientes();
+        } else toast("Error: " + (r.error || ""), "err");
+      }}
+    ]
+  });
+}
+
+async function rechazarVenta(fila, mes) {
+  abrirModal({
+    titulo: "Rechazar venta",
+    contenido: `<p>Motivo del rechazo (lo verá el vendedor):</p>
+      <textarea id="motivoRechazo" rows="3" style="width:100%;margin-top:8px;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text)"></textarea>`,
+    acciones: [
+      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
+      { txt: "Rechazar", clase: "btn-danger", accion: async () => {
+        const motivo = $("motivoRechazo").value.trim();
+        if (!motivo) { toast("Tenés que poner un motivo", "err"); return; }
+        cerrarModal();
+        toast("Rechazando...", "info");
+        const r = await api("rechazarVenta", { fila, mes, motivo });
+        if (r.ok) {
+          toast("Venta rechazada", "ok");
+          cargarPendientes();
+        } else toast("Error: " + (r.error || ""), "err");
+      }}
+    ]
+  });
+}
+
+// ============================================================
+// ADMIN - VENTAS (listado completo)
+// ============================================================
+async function cargarVentasAdmin() {
+  const mes = $("avMesSel").value || state.mesActualNombre;
+  const filtro = $("avFiltro").value.trim().toLowerCase();
+  const cont = $("aListaVentas");
+  cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+
+  const r = await api("obtenerVentas", { mes });
+  if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
+  let ventas = r.ventas || [];
+
+  if (filtro) {
+    ventas = ventas.filter(v => {
+      const d = v.datos;
+      return (d[3] || "").toString().toLowerCase().includes(filtro)
+          || (d[4] || "").toString().toLowerCase().includes(filtro)
+          || (d[5] || "").toString().toLowerCase().includes(filtro);
+    });
+  }
+
+  if (!ventas.length) {
+    cont.innerHTML = '<div class="empty"><span class="icon">📭</span>Sin resultados</div>';
+    return;
+  }
+
+  // En escritorio: tabla. En mobile: cards.
+  if (window.innerWidth >= 1024) {
+    let html = `<div class="tabla-wrap"><table class="tabla">
+      <thead><tr>
+        <th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Equipo</th>
+        <th>Cuota</th><th>Forma pago</th><th>Comisión</th><th>Estado</th><th>Link</th>
+      </tr></thead><tbody>`;
+    ventas.forEach(v => {
+      const d = v.datos;
+      const estado = String(d[13] || "").trim();
+      html += `<tr>
+        <td>${d[0]}</td>
+        <td>${d[3]}</td>
+        <td>${d[4] || "—"}</td>
+        <td>${d[5]}</td>
+        <td>${d[8] || "—"}</td>
+        <td>${d[7]}</td>
+        <td><strong>${fmtMoney(d[9])}</strong></td>
+        <td><span class="estado-badge ${estado.toLowerCase()}">${estado}</span></td>
+        <td>${d[16] ? '<a href="' + d[16] + '" target="_blank">🔗</a>' : "—"}</td>
+      </tr>`;
+    });
+    html += "</tbody></table></div>";
+    cont.innerHTML = html;
+  } else {
+    let html = "";
+    ventas.forEach(v => {
+      const d = v.datos;
+      const estado = String(d[13] || "").trim();
+      html += `<div class="venta-card ${estado.toLowerCase()}">
+        <div class="vc-top">
+          <div>
+            <div class="vc-equipo">${d[5]} — ${d[3]}</div>
+            <div class="vc-fecha">${d[0]} · ${d[8] || ""}</div>
+          </div>
+          <span class="estado-badge ${estado.toLowerCase()}">${estado}</span>
+        </div>
+        <div class="vc-meta">
+          <span>Cliente: <strong>${d[4] || "—"}</strong></span>
+          <span>Forma: <strong>${d[7]}</strong></span>
+        </div>
+        <div class="vc-foot">
+          <div class="vc-comision">${fmtMoney(d[9])}</div>
+          ${d[16] ? '<a href="' + d[16] + '" target="_blank" class="text-accent">Ver ticket 🔗</a>' : ""}
+        </div>
+      </div>`;
+    });
+    cont.innerHTML = html;
+  }
+}
+
+// ============================================================
+// ADMIN - EQUIPOS
+// ============================================================
+async function cargarEquiposAdmin() {
+  const r = await api("obtenerEquipos");
+  const cont = $("aListaEquipos");
+  if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
+  state.equipos = r.equipos || [];
+  if (!state.equipos.length) {
+    cont.innerHTML = '<div class="empty"><span class="icon">📦</span>Sin equipos en el catálogo</div>';
+    return;
+  }
+  let html = "";
+  state.equipos.forEach(e => {
+    const comTxt = e.tipoComision === "Fijo"
+      ? `Comisión fija: <strong>${fmtMoney(e.valorComision)}</strong>`
+      : `Comisión: <strong>${(e.valorComision * 100).toFixed(1)}%</strong>`;
+    html += `<div class="venta-card">
+      <div class="vc-top">
+        <div>
+          <div class="vc-equipo">${e.nombre}</div>
+          <div class="vc-fecha">${e.id}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick='abrirModalEquipo(${JSON.stringify(e).replace(/'/g, "&apos;")})'>Editar</button>
+      </div>
+      <div class="vc-meta">
+        <span>Precio: <strong>${fmtMoney(e.precioVenta)}</strong></span>
+        <span>${comTxt}</span>
+      </div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+function abrirModalEquipo(equipo) {
+  const esEdicion = !!equipo;
+  abrirModal({
+    titulo: esEdicion ? "Editar equipo" : "Nuevo equipo",
+    contenido: `
+      <div class="form-group">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" id="eqNombre" value="${equipo ? equipo.nombre : ""}">
+      </div>
+      <div class="form-group">
+        <label>Precio de venta <span class="req">*</span></label>
+        <input type="number" id="eqPrecio" value="${equipo ? equipo.precioVenta : ""}">
+      </div>
+      <div class="form-group">
+        <label>Tipo de comisión <span class="req">*</span></label>
+        <select id="eqTipo">
+          <option value="Fijo" ${equipo && equipo.tipoComision === "Fijo" ? "selected" : ""}>Fijo (monto en $)</option>
+          <option value="Porcentaje" ${equipo && equipo.tipoComision === "Porcentaje" ? "selected" : ""}>Porcentaje (% del precio)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Valor de comisión <span class="req">*</span></label>
+        <input type="number" step="0.01" id="eqValor" value="${equipo ? equipo.valorComision : ""}">
+        <span class="hint">Si es Fijo: monto en $. Si es Porcentaje: decimal (ej: 0.05 = 5%)</span>
+      </div>
+    `,
+    acciones: [
+      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
+      { txt: esEdicion ? "Guardar" : "Crear", clase: "btn-primary", accion: async () => {
+        const nombre = $("eqNombre").value.trim();
+        const precio = Number($("eqPrecio").value);
+        const tipo = $("eqTipo").value;
+        const valor = Number($("eqValor").value);
+        if (!nombre || !precio || !valor) { toast("Completá todos los campos", "err"); return; }
+
+        const datos = {
+          operacion: esEdicion ? "editar" : "agregar",
+          nombre,
+          precioVenta: precio,
+          tipoComision: tipo,
+          valorComision: valor
+        };
+        if (esEdicion) datos.id = equipo.id;
+
+        const r = await api("gestionarEquipos", datos);
+        cerrarModal();
+        if (r.ok) {
+          toast(esEdicion ? "Equipo actualizado" : "Equipo creado", "ok");
+          cargarEquiposAdmin();
+        } else toast("Error: " + (r.error || ""), "err");
+      }}
+    ]
+  });
+}
+
+// ============================================================
+// ADMIN - CERTIFICACIÓN
+// ============================================================
+async function descargarCertificacion() {
+  const mes = $("acMesSel").value || state.mesActualNombre;
+  const btn = $("btnCertif");
+  btn.disabled = true;
+  btn.textContent = "Generando...";
+
+  const r = await api("descargarCertificacion", { mes });
+  btn.disabled = false;
+  btn.textContent = "📥 Descargar Excel";
+
+  if (!r.ok) {
+    toast("Error: " + (r.error || ""), "err");
+    return;
+  }
+
+  // Decodificar base64 a blob y forzar descarga
+  const byteString = atob(r.base64);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+  const blob = new Blob([ab], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = r.nombre || ("Certificacion_" + mes + ".xlsx");
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  toast(`Certificación lista. ${r.cantidadCuotas} cuotas · Total: ${fmtMoney(r.totalGeneral)}`, "ok", 5000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener("DOMContentLoaded", async () => {
+  setupKeypad();
+  $("btnLogin").onclick = hacerLogin;
+  await initLogin();
+});
+</script>
+</body>
+</html>
