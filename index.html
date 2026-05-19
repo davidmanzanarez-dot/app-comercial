@@ -132,6 +132,37 @@ a{color:var(--accent);text-decoration:none}
 .btn-logout:hover{color:var(--err);border-color:var(--err)}
 
 /* ============================================================
+   FIRMA DMZ (login + sidebar)
+   ============================================================ */
+.dmz-sig{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-top:14px;
+  padding:10px 0 0;
+}
+.dmz-sig .dmz-line{
+  flex:0 0 22px;
+  height:1px;
+  background:rgba(138,163,200,.18);
+}
+.dmz-sig .dmz-txt{
+  font-family:var(--font-display);
+  font-size:11px;
+  letter-spacing:4px;
+  color:var(--text-mute);
+  font-weight:500;
+}
+.dmz-sig.sidebar{
+  margin:0;
+  padding:14px 0 12px;
+  border-top:1px solid var(--border);
+}
+.dmz-sig.sidebar .dmz-line{flex:0 0 16px}
+.dmz-sig.sidebar .dmz-txt{font-size:10px;letter-spacing:3px}
+
+/* ============================================================
    CONTENIDO PRINCIPAL
    ============================================================ */
 .content{
@@ -394,6 +425,59 @@ a{color:var(--accent);text-decoration:none}
 }
 
 /* ============================================================
+   TOGGLE TIPO DE VENTA (Equipo / Plan)
+   ============================================================ */
+.tipo-venta-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:13px;
+}
+.tipo-venta-card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  padding:14px 8px;
+  text-align:center;
+  cursor:pointer;
+  transition:.15s;
+}
+.tipo-venta-card:hover{border-color:var(--border-strong)}
+.tipo-venta-card.active{
+  border-color:var(--accent);
+  background:linear-gradient(135deg,rgba(30,156,215,.18) 0%,var(--surface-2) 100%);
+}
+.tipo-venta-card .tv-icon{
+  font-size:22px;
+  display:block;
+  margin-bottom:4px;
+  filter:grayscale(.4);
+  opacity:.7;
+}
+.tipo-venta-card.active .tv-icon{
+  filter:none;
+  opacity:1;
+}
+.tipo-venta-card .tv-label{
+  font-family:var(--font-display);
+  font-size:13px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  font-weight:500;
+}
+.tipo-venta-card.active .tv-label{color:var(--accent)}
+
+/* Animación para el bloque de escenarios */
+.escenario-block{
+  animation:fadeInDown .25s ease;
+}
+@keyframes fadeInDown{
+  from{opacity:0;transform:translateY(-6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ============================================================
    BOTONES
    ============================================================ */
 .btn{
@@ -557,6 +641,21 @@ a{color:var(--accent);text-decoration:none}
 .estado-badge.aprobada{background:rgba(47,191,113,.2);color:#7fe5ad}
 .estado-badge.rechazada{background:rgba(239,90,90,.2);color:#ff9a9a}
 .estado-badge.anulada{background:rgba(90,114,153,.2);color:var(--text-dim)}
+
+/* Badge para tipo de producto en listado de equipos */
+.prod-badge{
+  display:inline-block;
+  padding:2px 7px;
+  border-radius:3px;
+  font-family:var(--font-display);
+  font-size:10px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-left:8px;
+}
+.prod-badge.equipo{background:rgba(30,156,215,.18);color:var(--accent-2)}
+.prod-badge.plan{background:rgba(47,191,113,.18);color:#7fe5ad}
 
 .vc-motivo{
   background:rgba(239,90,90,.08);
@@ -883,6 +982,12 @@ a{color:var(--accent);text-decoration:none}
         <span class="ss">SS</span> <span class="co">COMERCIAL</span>
       </div>
       <div class="tagline">Gestión de comisiones</div>
+      <!-- Firma DMZ V7 -->
+      <div class="dmz-sig">
+        <span class="dmz-line"></span>
+        <span class="dmz-txt">DMZ</span>
+        <span class="dmz-line"></span>
+      </div>
     </div>
 
     <div class="login-card">
@@ -974,6 +1079,21 @@ a{color:var(--accent);text-decoration:none}
     <div id="vCargar" class="v-page hidden">
       <div class="page-title"><span class="accent-bar"></span><span id="cargarTitulo">Nueva venta</span></div>
 
+      <!-- Toggle Tipo de venta (Equipo / Plan) -->
+      <div class="form-group">
+        <label>Tipo de venta <span class="req">*</span></label>
+        <div class="tipo-venta-grid">
+          <div class="tipo-venta-card active" data-tipo="Equipo" onclick="cambiarTipoVenta('Equipo')">
+            <span class="tv-icon">📦</span>
+            <div class="tv-label">Equipo</div>
+          </div>
+          <div class="tipo-venta-card" data-tipo="Plan" onclick="cambiarTipoVenta('Plan')">
+            <span class="tv-icon">📡</span>
+            <div class="tv-label">Plan</div>
+          </div>
+        </div>
+      </div>
+
       <div class="form-group">
         <label>Fecha de venta <span class="req">*</span></label>
         <input type="date" id="fVFecha">
@@ -990,11 +1110,20 @@ a{color:var(--accent);text-decoration:none}
       </div>
 
       <div class="form-group">
-        <label>Equipo <span class="req">*</span></label>
+        <label id="fVEquipoLabel">Equipo <span class="req">*</span></label>
         <select id="fVEquipo">
           <option value="">-- Seleccionar --</option>
         </select>
         <span class="hint" id="fVEquipoInfo"></span>
+      </div>
+
+      <!-- Selector de escenario (solo aparece para productos con comisiones múltiples) -->
+      <div class="form-group hidden escenario-block" id="fVEscenarioGroup">
+        <label>Escenario de venta <span class="req">*</span></label>
+        <select id="fVEscenario">
+          <option value="">-- Seleccionar --</option>
+        </select>
+        <span class="hint">El monto de comisión depende del escenario</span>
       </div>
 
       <div class="form-group">
@@ -1077,11 +1206,17 @@ a{color:var(--accent);text-decoration:none}
         <button data-anav="aDashboard" class="active">📊 Dashboard</button>
         <button data-anav="aPendientes">⏳ Pendientes <span id="adNumPend" class="estado-badge pendiente hidden" style="margin-left:auto">0</span></button>
         <button data-anav="aVentas">💼 Ventas</button>
-        <button data-anav="aEquipos">📦 Equipos</button>
+        <button data-anav="aEquipos">📦 Catálogo</button>
         <button data-anav="aCertificacion">📥 Certificación</button>
       </nav>
       <div class="sidebar-foot">
-        <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
+        <!-- Firma DMZ V7 en sidebar -->
+        <div class="dmz-sig sidebar">
+          <span class="dmz-line"></span>
+          <span class="dmz-txt">DMZ</span>
+          <span class="dmz-line"></span>
+        </div>
+        <button class="btn-logout" style="width:100%;margin-top:10px" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
 
@@ -1140,6 +1275,10 @@ a{color:var(--accent);text-decoration:none}
               <div class="chart-canvas-wrap"><canvas id="chartEquipos"></canvas></div>
             </div>
             <div class="chart-box">
+              <h3>Planes más vendidos</h3>
+              <div class="chart-canvas-wrap"><canvas id="chartPlanes"></canvas></div>
+            </div>
+            <div class="chart-box">
               <h3>Forma de pago</h3>
               <div class="chart-canvas-wrap"><canvas id="chartFormaPago"></canvas></div>
             </div>
@@ -1171,10 +1310,10 @@ a{color:var(--accent);text-decoration:none}
           </div>
         </div>
 
-        <!-- EQUIPOS -->
+        <!-- EQUIPOS / CATÁLOGO -->
         <div id="aEquipos" class="a-page hidden">
-          <div class="page-title"><span class="accent-bar"></span><span>Catálogo de equipos</span></div>
-          <button class="btn btn-primary btn-block mb" onclick="abrirModalEquipo()">➕ Agregar equipo</button>
+          <div class="page-title"><span class="accent-bar"></span><span>Catálogo (Equipos y Planes)</span></div>
+          <button class="btn btn-primary btn-block mb" onclick="abrirModalEquipo()">➕ Agregar producto</button>
           <div id="aListaEquipos">
             <div class="loader"><div class="spinner"></div></div>
           </div>
@@ -1210,7 +1349,7 @@ a{color:var(--accent);text-decoration:none}
           <span class="icon">💼</span>Ventas
         </button>
         <button data-anav="aEquipos">
-          <span class="icon">📦</span>Equipos
+          <span class="icon">📦</span>Catálogo
         </button>
         <button data-anav="aCertificacion">
           <span class="icon">📥</span>Certif.
@@ -1242,7 +1381,8 @@ const state = {
   mesActual: "",
   pinBuffer: "",
   charts: {},
-  mesActualNombre: ""
+  mesActualNombre: "",
+  tipoVentaActual: "Equipo"  // tipo seleccionado en el form (Equipo o Plan)
 };
 
 // ============================================================
@@ -1325,6 +1465,14 @@ async function initLogin() {
     state.vendedores = r.vendedores || [];
     const sel = $("loginVendedor");
     sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+
+    // Entrada ADMIN al inicio (no aparece en la hoja Vendedores)
+    const opAdmin = document.createElement("option");
+    opAdmin.value = "ADMIN";
+    opAdmin.textContent = "👤 ADMIN";
+    sel.appendChild(opAdmin);
+
+    // Resto de vendedores
     state.vendedores.forEach(v => {
       const op = document.createElement("option");
       op.value = v.nombre;
@@ -1369,6 +1517,7 @@ async function hacerLogin() {
   const nombre = $("loginVendedor").value;
   const pin = state.pinBuffer;
 
+  if (!nombre) { toast("Seleccioná un usuario", "err"); return; }
   if (!pin) { toast("Ingresá el PIN", "err"); return; }
   if (pin.length !== 4) { toast("El PIN debe tener 4 dígitos", "err"); return; }
 
@@ -1514,15 +1663,12 @@ function prepararFormVenta() {
     selL.appendChild(o);
   });
 
-  // Equipos
-  const selE = $("fVEquipo");
-  selE.innerHTML = '<option value="">-- Seleccionar --</option>';
-  state.equipos.forEach(e => {
-    const o = document.createElement("option");
-    o.value = e.id;
-    o.textContent = e.nombre;
-    selE.appendChild(o);
+  // Por defecto arrancar en "Equipo"
+  state.tipoVentaActual = "Equipo";
+  document.querySelectorAll(".tipo-venta-card").forEach(c => {
+    c.classList.toggle("active", c.dataset.tipo === "Equipo");
   });
+  llenarSelectProductos("Equipo");
 
   // Limpiar otros
   $("fVCliente").value = "";
@@ -1530,12 +1676,47 @@ function prepararFormVenta() {
   $("fVLink").value = "";
   $("fVFormaPago").value = "Contado";
   $("fVEquipoInfo").textContent = "";
+  $("fVEscenarioGroup").classList.add("hidden");
+  $("fVEscenario").innerHTML = '<option value="">-- Seleccionar --</option>';
   $("commissionPreview").classList.add("hidden");
 
   // Listeners para recálculo
   $("fVEquipo").onchange = onCambioEquipo;
+  $("fVEscenario").onchange = recalcularPreview;
   $("fVFormaPago").onchange = recalcularPreview;
   $("fVPrecio").oninput = recalcularPreview;
+}
+
+// Cambia entre tipo "Equipo" y "Plan" y filtra el select de productos
+function cambiarTipoVenta(tipo) {
+  state.tipoVentaActual = tipo;
+  document.querySelectorAll(".tipo-venta-card").forEach(c => {
+    c.classList.toggle("active", c.dataset.tipo === tipo);
+  });
+  // Actualizar label del select y del campo
+  $("fVEquipoLabel").innerHTML = (tipo === "Plan" ? "Plan" : "Equipo") + ' <span class="req">*</span>';
+  // Vaciar selección actual y recargar lista filtrada
+  $("fVEquipo").value = "";
+  $("fVPrecio").value = "";
+  $("fVEquipoInfo").textContent = "";
+  $("fVEscenarioGroup").classList.add("hidden");
+  $("fVEscenario").innerHTML = '<option value="">-- Seleccionar --</option>';
+  $("commissionPreview").classList.add("hidden");
+  llenarSelectProductos(tipo);
+}
+
+// Llena el select de productos según el tipo activo
+function llenarSelectProductos(tipo) {
+  const selE = $("fVEquipo");
+  selE.innerHTML = '<option value="">-- Seleccionar --</option>';
+  state.equipos
+    .filter(e => (e.tipoProducto || "Equipo") === tipo)
+    .forEach(e => {
+      const o = document.createElement("option");
+      o.value = e.id;
+      o.textContent = e.nombre;
+      selE.appendChild(o);
+    });
 }
 
 function onCambioEquipo() {
@@ -1544,16 +1725,39 @@ function onCambioEquipo() {
   if (!eq) {
     $("fVEquipoInfo").textContent = "";
     $("fVPrecio").value = "";
+    $("fVEscenarioGroup").classList.add("hidden");
     $("commissionPreview").classList.add("hidden");
     return;
   }
   // Precio del catálogo (no editable por vendedor)
   $("fVPrecio").value = eq.precioVenta;
 
-  const tipoTexto = eq.tipoComision === "Fijo"
-    ? `Comisión fija: ${fmtMoney(eq.valorComision)}`
-    : `Comisión: ${(eq.valorComision * 100).toFixed(1)}% sobre precio`;
-  $("fVEquipoInfo").textContent = tipoTexto;
+  // Manejar comisiones múltiples (escenarios)
+  if (eq.comisionesMultiples && eq.escenarios && eq.escenarios.length > 0) {
+    // Llenar select de escenarios
+    const selEsc = $("fVEscenario");
+    selEsc.innerHTML = '<option value="">-- Seleccionar --</option>';
+    eq.escenarios.forEach(s => {
+      const o = document.createElement("option");
+      o.value = s.etiqueta;
+      // Mostrar etiqueta + valor para que el vendedor vea cuánto cobra en cada caso
+      let preview = "";
+      if (s.tipoComision === "Fijo") preview = " · " + fmtMoney(s.valorComision);
+      else preview = " · " + (s.valorComision * 100).toFixed(1) + "%";
+      o.textContent = s.etiqueta + preview;
+      selEsc.appendChild(o);
+    });
+    $("fVEscenarioGroup").classList.remove("hidden");
+    $("fVEquipoInfo").textContent = "Este producto tiene varias comisiones según el escenario";
+  } else {
+    // Producto con comisión única
+    $("fVEscenarioGroup").classList.add("hidden");
+    $("fVEscenario").innerHTML = '<option value="">-- Seleccionar --</option>';
+    const tipoTexto = eq.tipoComision === "Fijo"
+      ? `Comisión fija: ${fmtMoney(eq.valorComision)}`
+      : `Comisión: ${(eq.valorComision * 100).toFixed(1)}% sobre precio`;
+    $("fVEquipoInfo").textContent = tipoTexto;
+  }
 
   recalcularPreview();
 }
@@ -1567,9 +1771,29 @@ function recalcularPreview() {
   const formaPago = $("fVFormaPago").value;
   const fechaISO = $("fVFecha").value || hoyISO();
 
-  let comisionTotal = eq.tipoComision === "Fijo"
-    ? eq.valorComision
-    : precio * eq.valorComision;
+  // Resolver tipo y valor de comisión según si hay escenario
+  let tipoComision = eq.tipoComision;
+  let valorComision = eq.valorComision;
+
+  if (eq.comisionesMultiples) {
+    const escId = $("fVEscenario").value;
+    if (!escId) {
+      // Aún no eligió escenario → ocultar preview
+      $("commissionPreview").classList.add("hidden");
+      return;
+    }
+    const esc = (eq.escenarios || []).find(s => s.etiqueta === escId);
+    if (!esc) {
+      $("commissionPreview").classList.add("hidden");
+      return;
+    }
+    tipoComision = esc.tipoComision;
+    valorComision = esc.valorComision;
+  }
+
+  let comisionTotal = tipoComision === "Fijo"
+    ? valorComision
+    : precio * valorComision;
 
   let cuotas = 1;
   if (formaPago.includes("3")) cuotas = 3;
@@ -1606,8 +1830,16 @@ async function enviarVenta() {
 
   if (!fechaISO) return toast("Falta la fecha de venta", "err");
   if (!localidad) return toast("Falta la localidad", "err");
-  if (!eqId) return toast("Falta el equipo", "err");
+  if (!eqId) return toast("Falta el " + state.tipoVentaActual.toLowerCase(), "err");
   if (!link) return toast("El link del ticket es obligatorio", "err");
+
+  // Si el producto tiene escenarios, validar que se haya elegido uno
+  const eq = state.equipos.find(e => String(e.id) === String(eqId));
+  let escenarioId = "";
+  if (eq && eq.comisionesMultiples) {
+    escenarioId = $("fVEscenario").value;
+    if (!escenarioId) return toast("Falta seleccionar el escenario de venta", "err");
+  }
 
   // Validación básica de URL
   if (!/^https?:\/\//i.test(link)) {
@@ -1624,6 +1856,7 @@ async function enviarVenta() {
     link
     // precio se ignora en backend (toma del catálogo)
   };
+  if (escenarioId) datos.escenarioId = escenarioId;
 
   toast("Registrando venta...", "info");
   const r = await api("registrarVenta", datos);
@@ -1740,39 +1973,66 @@ function editarVentaModal(venta, mes) {
   irA("vCargar");
   setTimeout(() => {
     $("cargarTitulo").textContent = "Editar venta rechazada";
+
+    // Buscar el producto en el catálogo. El nombre puede venir con " · Escenario"
+    const nombreBase = String(venta.equipo).split(" · ")[0].trim();
+    const escenarioGuardado = String(venta.equipo).split(" · ")[1] || "";
+    const eq = state.equipos.find(e => e.nombre === nombreBase || e.nombre === venta.equipo);
+
+    // Seleccionar tipo de venta según producto
+    if (eq) {
+      cambiarTipoVenta(eq.tipoProducto || "Equipo");
+    }
+
     // Convertir fecha
     const [d, m, y] = venta.fecha.split("/");
     $("fVFecha").value = `${y}-${m}-${d}`;
     $("fVLocalidad").value = venta.localidad;
     $("fVCliente").value = venta.cliente;
-    // Buscar equipo
-    const eq = state.equipos.find(e => e.nombre === venta.equipo);
+
     if (eq) $("fVEquipo").value = eq.id;
     onCambioEquipo();
+
+    // Si hay escenario guardado, seleccionarlo
+    if (escenarioGuardado && eq && eq.comisionesMultiples) {
+      $("fVEscenario").value = escenarioGuardado.trim();
+    }
+
     $("fVFormaPago").value = venta.formaPago;
     $("fVLink").value = venta.link;
     recalcularPreview();
 
     // Cambiar botón submit
     const btn = $("vCargar").querySelector('button[onclick="enviarVenta()"]');
-    btn.textContent = "Guardar cambios";
-    btn.setAttribute("onclick", `enviarEdicion(${venta.fila}, "${mes}")`);
+    if (btn) {
+      btn.textContent = "Guardar cambios";
+      btn.setAttribute("onclick", `enviarEdicion(${venta.fila}, "${mes}")`);
+    }
   }, 100);
 }
 
 async function enviarEdicion(fila, mes) {
   const fechaISO = $("fVFecha").value;
+  const eqId = $("fVEquipo").value;
+  const eq = state.equipos.find(e => String(e.id) === String(eqId));
+  let escenarioId = "";
+  if (eq && eq.comisionesMultiples) {
+    escenarioId = $("fVEscenario").value;
+    if (!escenarioId) return toast("Falta seleccionar el escenario", "err");
+  }
+
   const datos = {
     vendedor: state.usuario.nombre,
     fechaVenta: ISOaDDMMYYYY(fechaISO),
     localidad: $("fVLocalidad").value,
     nroCliente: $("fVCliente").value.trim(),
-    equipoId: $("fVEquipo").value,
+    equipoId: eqId,
     formaPago: $("fVFormaPago").value,
     link: $("fVLink").value.trim(),
     fila,
     mes
   };
+  if (escenarioId) datos.escenarioId = escenarioId;
   if (!datos.link) return toast("El link del ticket es obligatorio", "err");
 
   toast("Actualizando...", "info");
@@ -1926,6 +2186,7 @@ async function cargarDashboard() {
     // Charts
     renderChartVendedores(a.porVendedor || {});
     renderChartEquipos(a.porEquipo || {});
+    renderChartPlanes(a.porPlan || {});
     renderChartFormaPago(a.porFormaPago || {});
   }
 }
@@ -1984,7 +2245,12 @@ function renderChartEquipos(data) {
   destroyChart("equipos");
   const labels = Object.keys(data);
   const valores = labels.map(k => data[k]);
-  if (!labels.length) return;
+  if (!labels.length) {
+    // Si no hay equipos, mostrar mensaje vacío en el canvas
+    const ctx = $("chartEquipos").getContext("2d");
+    ctx.clearRect(0, 0, $("chartEquipos").width, $("chartEquipos").height);
+    return;
+  }
   state.charts.equipos = new Chart($("chartEquipos"), {
     type: "bar",
     data: {
@@ -1993,6 +2259,30 @@ function renderChartEquipos(data) {
         label: "Cantidad vendida",
         data: valores,
         backgroundColor: "#42b8ee",
+        borderRadius: 3
+      }]
+    },
+    options: chartOpts({ horizontal: true })
+  });
+}
+
+function renderChartPlanes(data) {
+  destroyChart("planes");
+  const labels = Object.keys(data);
+  const valores = labels.map(k => data[k]);
+  if (!labels.length) {
+    const ctx = $("chartPlanes").getContext("2d");
+    ctx.clearRect(0, 0, $("chartPlanes").width, $("chartPlanes").height);
+    return;
+  }
+  state.charts.planes = new Chart($("chartPlanes"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Cantidad vendida",
+        data: valores,
+        backgroundColor: "#2fbf71",
         borderRadius: 3
       }]
     },
@@ -2176,7 +2466,7 @@ async function cargarVentasAdmin() {
   if (window.innerWidth >= 1024) {
     let html = `<div class="tabla-wrap"><table class="tabla">
       <thead><tr>
-        <th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Equipo</th>
+        <th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Producto</th>
         <th>Cuota</th><th>Forma pago</th><th>Comisión</th><th>Estado</th><th>Link</th>
       </tr></thead><tbody>`;
     ventas.forEach(v => {
@@ -2224,7 +2514,7 @@ async function cargarVentasAdmin() {
 }
 
 // ============================================================
-// ADMIN - EQUIPOS
+// ADMIN - CATÁLOGO (Equipos y Planes)
 // ============================================================
 async function cargarEquiposAdmin() {
   const r = await api("obtenerEquipos");
@@ -2232,36 +2522,75 @@ async function cargarEquiposAdmin() {
   if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
   state.equipos = r.equipos || [];
   if (!state.equipos.length) {
-    cont.innerHTML = '<div class="empty"><span class="icon">📦</span>Sin equipos en el catálogo</div>';
+    cont.innerHTML = '<div class="empty"><span class="icon">📦</span>Sin productos en el catálogo</div>';
     return;
   }
+
+  // Separar equipos y planes para mostrar agrupado
+  const equipos = state.equipos.filter(e => (e.tipoProducto || "Equipo") === "Equipo");
+  const planes = state.equipos.filter(e => e.tipoProducto === "Plan");
+
   let html = "";
-  state.equipos.forEach(e => {
-    const comTxt = e.tipoComision === "Fijo"
-      ? `Comisión fija: <strong>${fmtMoney(e.valorComision)}</strong>`
-      : `Comisión: <strong>${(e.valorComision * 100).toFixed(1)}%</strong>`;
-    html += `<div class="venta-card">
-      <div class="vc-top">
-        <div>
-          <div class="vc-equipo">${e.nombre}</div>
-          <div class="vc-fecha">${e.id}</div>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick='abrirModalEquipo(${JSON.stringify(e).replace(/'/g, "&apos;")})'>Editar</button>
-      </div>
-      <div class="vc-meta">
-        <span>Precio: <strong>${fmtMoney(e.precioVenta)}</strong></span>
-        <span>${comTxt}</span>
-      </div>
-    </div>`;
-  });
+
+  if (equipos.length) {
+    html += '<div class="card-title" style="margin-top:6px">📦 Equipos</div>';
+    equipos.forEach(e => { html += renderProductoCard(e); });
+  }
+
+  if (planes.length) {
+    html += '<div class="card-title" style="margin-top:14px">📡 Planes</div>';
+    planes.forEach(e => { html += renderProductoCard(e); });
+  }
+
   cont.innerHTML = html;
+}
+
+function renderProductoCard(e) {
+  let comTxt = "";
+  if (e.comisionesMultiples) {
+    const cant = (e.escenarios || []).length;
+    comTxt = `<span class="prod-badge plan" style="background:rgba(240,168,50,.18);color:#ffd388">⚙ ${cant} escenario(s)</span>`;
+  } else if (e.tipoComision === "Fijo") {
+    comTxt = `Comisión fija: <strong>${fmtMoney(e.valorComision)}</strong>`;
+  } else {
+    comTxt = `Comisión: <strong>${(e.valorComision * 100).toFixed(1)}%</strong>`;
+  }
+  const tipoBadge = `<span class="prod-badge ${(e.tipoProducto || 'Equipo').toLowerCase()}">${e.tipoProducto || 'Equipo'}</span>`;
+  return `<div class="venta-card">
+    <div class="vc-top">
+      <div>
+        <div class="vc-equipo">${e.nombre} ${tipoBadge}</div>
+        <div class="vc-fecha">${e.id}</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick='abrirModalEquipo(${JSON.stringify(e).replace(/'/g, "&apos;")})'>Editar</button>
+    </div>
+    <div class="vc-meta">
+      <span>Precio: <strong>${fmtMoney(e.precioVenta)}</strong></span>
+      <span>${comTxt}</span>
+    </div>
+  </div>`;
 }
 
 function abrirModalEquipo(equipo) {
   const esEdicion = !!equipo;
+  const tipoProd = equipo ? (equipo.tipoProducto || "Equipo") : "Equipo";
+  const comMulti = equipo ? !!equipo.comisionesMultiples : false;
+
+  // Serializar escenarios actuales si los hay
+  const escenariosTxt = (equipo && equipo.escenarios)
+    ? equipo.escenarios.map(s => `${s.etiqueta}:${s.tipoComision}:${s.valorComision}`).join("|")
+    : "";
+
   abrirModal({
-    titulo: esEdicion ? "Editar equipo" : "Nuevo equipo",
+    titulo: esEdicion ? "Editar producto" : "Nuevo producto",
     contenido: `
+      <div class="form-group">
+        <label>Tipo de producto <span class="req">*</span></label>
+        <select id="eqTipoProducto">
+          <option value="Equipo" ${tipoProd === "Equipo" ? "selected" : ""}>Equipo</option>
+          <option value="Plan" ${tipoProd === "Plan" ? "selected" : ""}>Plan</option>
+        </select>
+      </div>
       <div class="form-group">
         <label>Nombre <span class="req">*</span></label>
         <input type="text" id="eqNombre" value="${equipo ? equipo.nombre : ""}">
@@ -2271,16 +2600,34 @@ function abrirModalEquipo(equipo) {
         <input type="number" id="eqPrecio" value="${equipo ? equipo.precioVenta : ""}">
       </div>
       <div class="form-group">
-        <label>Tipo de comisión <span class="req">*</span></label>
-        <select id="eqTipo">
-          <option value="Fijo" ${equipo && equipo.tipoComision === "Fijo" ? "selected" : ""}>Fijo (monto en $)</option>
-          <option value="Porcentaje" ${equipo && equipo.tipoComision === "Porcentaje" ? "selected" : ""}>Porcentaje (% del precio)</option>
-        </select>
+        <label>
+          <input type="checkbox" id="eqComMulti" ${comMulti ? "checked" : ""} style="width:auto;margin-right:6px;vertical-align:middle">
+          Comisiones múltiples (varios escenarios)
+        </label>
+        <span class="hint">Activá esto si el producto tiene distintas comisiones según escenario (ej: cliente / no cliente / combo)</span>
       </div>
-      <div class="form-group">
-        <label>Valor de comisión <span class="req">*</span></label>
-        <input type="number" step="0.01" id="eqValor" value="${equipo ? equipo.valorComision : ""}">
-        <span class="hint">Si es Fijo: monto en $. Si es Porcentaje: decimal (ej: 0.05 = 5%)</span>
+
+      <div id="eqComisionSimple" class="${comMulti ? 'hidden' : ''}">
+        <div class="form-group">
+          <label>Tipo de comisión <span class="req">*</span></label>
+          <select id="eqTipo">
+            <option value="Fijo" ${equipo && equipo.tipoComision === "Fijo" ? "selected" : ""}>Fijo (monto en $)</option>
+            <option value="Porcentaje" ${equipo && equipo.tipoComision === "Porcentaje" ? "selected" : ""}>Porcentaje (% del precio)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor de comisión <span class="req">*</span></label>
+          <input type="number" step="0.001" id="eqValor" value="${equipo ? equipo.valorComision : ""}">
+          <span class="hint">Si es Fijo: monto en $. Si es Porcentaje: decimal (ej: 0.05 = 5%)</span>
+        </div>
+      </div>
+
+      <div id="eqComisionMulti" class="${comMulti ? '' : 'hidden'}">
+        <div class="form-group">
+          <label>Escenarios</label>
+          <textarea id="eqEscenarios" rows="4" style="width:100%;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:monospace;font-size:13px">${escenariosTxt}</textarea>
+          <span class="hint">Un escenario por línea o separados por <code>|</code>. Formato: <code>Etiqueta:Tipo:Valor</code>. Ej: <code>Cliente:Fijo:1200|No cliente:Fijo:1800|Combo:Fijo:2200</code></span>
+        </div>
       </div>
     `,
     acciones: [
@@ -2288,28 +2635,55 @@ function abrirModalEquipo(equipo) {
       { txt: esEdicion ? "Guardar" : "Crear", clase: "btn-primary", accion: async () => {
         const nombre = $("eqNombre").value.trim();
         const precio = Number($("eqPrecio").value);
-        const tipo = $("eqTipo").value;
-        const valor = Number($("eqValor").value);
-        if (!nombre || !precio || !valor) { toast("Completá todos los campos", "err"); return; }
+        const tipoProducto = $("eqTipoProducto").value;
+        const esMulti = $("eqComMulti").checked;
+
+        if (!nombre) { toast("Falta el nombre", "err"); return; }
+        if (!precio && precio !== 0) { toast("Falta el precio", "err"); return; }
 
         const datos = {
           operacion: esEdicion ? "editar" : "agregar",
           nombre,
+          tipoProducto,
           precioVenta: precio,
-          tipoComision: tipo,
-          valorComision: valor
+          comisionesMultiples: esMulti ? "SI" : "NO"
         };
+
+        if (esMulti) {
+          // Normalizar escenarios: aceptar saltos de línea o |
+          const txt = $("eqEscenarios").value.trim().replace(/\n+/g, "|");
+          if (!txt) { toast("Tenés que cargar al menos un escenario", "err"); return; }
+          datos.escenarios = txt;
+        } else {
+          const tipo = $("eqTipo").value;
+          const valor = Number($("eqValor").value);
+          if (!valor && valor !== 0) { toast("Falta el valor de comisión", "err"); return; }
+          datos.tipoComision = tipo;
+          datos.valorComision = valor;
+        }
+
         if (esEdicion) datos.id = equipo.id;
 
         const r = await api("gestionarEquipos", datos);
         cerrarModal();
         if (r.ok) {
-          toast(esEdicion ? "Equipo actualizado" : "Equipo creado", "ok");
+          toast(esEdicion ? "Producto actualizado" : "Producto creado", "ok");
           cargarEquiposAdmin();
         } else toast("Error: " + (r.error || ""), "err");
       }}
     ]
   });
+
+  // Listener para mostrar/ocultar bloque según checkbox comisiones múltiples
+  setTimeout(() => {
+    const chk = $("eqComMulti");
+    if (chk) {
+      chk.onchange = () => {
+        $("eqComisionSimple").classList.toggle("hidden", chk.checked);
+        $("eqComisionMulti").classList.toggle("hidden", !chk.checked);
+      };
+    }
+  }, 50);
 }
 
 // ============================================================
