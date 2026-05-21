@@ -968,6 +968,111 @@ a{color:var(--accent);text-decoration:none}
 .flex-gap{display:flex;gap:8px;align-items:center}
 .divider{height:1px;background:var(--border);margin:14px 0}
 
+
+/* ============================================================
+   DASHBOARD REDISEÑADO v1.4 (Patch B.1)
+   ============================================================ */
+
+/* Hero comisión total */
+.hero-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:14px}
+@media (min-width:1024px){.hero-grid{grid-template-columns:2fr 1fr}}
+.hero-card{
+  background:linear-gradient(135deg,rgba(30,156,215,.10) 0%,rgba(30,156,215,.01) 100%);
+  border:1px solid rgba(30,156,215,.30);
+  border-radius:var(--r-md);
+  padding:18px 20px;
+}
+.hero-label{font-family:var(--font-display);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
+.hero-value-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.hero-value{font-family:var(--font-display);font-weight:700;font-size:38px;color:#fff;line-height:1}
+.hero-spark{width:100%;height:46px}
+.hero-side{display:grid;grid-template-rows:1fr 1fr;gap:10px}
+
+/* Chips de variación */
+.var-chip{font-size:12px;padding:3px 9px;border-radius:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.var-up{color:#4ade80;background:rgba(74,222,128,.12)}
+.var-down{color:#f87171;background:rgba(248,113,113,.12)}
+.var-flat{color:var(--text-mute);background:rgba(138,152,173,.10)}
+.var-inline{font-size:11px;font-weight:600}
+.var-inline.up{color:#4ade80}
+.var-inline.down{color:#f87171}
+.var-inline.flat{color:var(--text-mute)}
+
+/* KPI mini (fila ticket/pago/localidad) */
+.kpi-mini{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px}
+.kpi-mini .l{font-family:var(--font-display);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim)}
+.kpi-mini .v{font-family:var(--font-display);font-weight:700;font-size:22px;color:#fff;line-height:1.1;margin-top:2px}
+.kpi-mini .v.accent{color:var(--accent)}
+.kpi-mini .s{font-size:10px;color:var(--text-mute);margin-top:2px}
+
+/* Tabla evolución del equipo */
+.tabla-equipo{width:100%;border-collapse:collapse;font-size:13px}
+.tabla-equipo thead th{
+  text-align:left;padding:7px 8px;font-family:var(--font-display);
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-mute);font-weight:500;
+}
+.tabla-equipo thead th.r{text-align:right}
+.tabla-equipo thead th.c{text-align:center}
+.tabla-equipo tbody td{padding:10px 8px;border-top:1px solid rgba(255,255,255,.05);color:var(--text)}
+.tabla-equipo tbody td.r{text-align:right}
+.tabla-equipo tbody td.c{text-align:center}
+.tabla-equipo tbody tr{cursor:pointer;transition:background .12s}
+.tabla-equipo tbody tr:hover{background:rgba(30,156,215,.06)}
+.tabla-equipo tbody tr.sel{background:rgba(30,156,215,.10)}
+.tabla-equipo .com{color:var(--accent);font-weight:600}
+.medalla{font-size:11px;margin-right:3px}
+.medalla.oro{color:#f0993f}
+.medalla.plata{color:#c0c0c0}
+.medalla.bronce{color:#b4855a}
+.ver-todos{text-align:center;padding:10px;font-size:12px;color:var(--text-mute);cursor:pointer}
+.ver-todos:hover{color:var(--accent)}
+
+/* Card detalle vendedor */
+.vend-detalle{
+  background:var(--surface);border:1px solid rgba(30,156,215,.25);
+  border-radius:var(--r-md);padding:16px;margin-bottom:14px;
+}
+.vd-head{display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.vd-avatar{width:34px;height:34px;border-radius:50%;background:rgba(30,156,215,.15);
+  border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;color:var(--accent);font-size:13px}
+.vd-rango{display:flex;gap:4px}
+.vd-rango button{font-size:10px;padding:3px 9px;border:1px solid var(--border);
+  color:var(--text-dim);border-radius:10px;background:transparent;cursor:pointer;transition:.12s}
+.vd-rango button.active{background:rgba(30,156,215,.15);border-color:var(--accent);color:var(--accent);font-weight:600}
+.vd-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.vd-kpis .l{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.vd-kpis .v{font-family:var(--font-display);font-weight:700;font-size:17px;margin-top:2px}
+.vd-empty{text-align:center;color:var(--text-mute);padding:30px 10px;font-size:13px}
+
+/* Ranking de localidades */
+.loc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:1024px){.loc-grid{grid-template-columns:repeat(4,1fr)}}
+.loc-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px}
+.loc-card.top{background:rgba(30,156,215,.06);border-color:rgba(30,156,215,.25)}
+.loc-card .n{font-size:11px;color:var(--text)}
+.loc-card .m{font-family:var(--font-display);font-weight:700;font-size:15px;margin-top:4px}
+.loc-card .m.accent{color:var(--accent)}
+.loc-card .s{font-size:9px;color:var(--text-mute)}
+
+/* Ranking Top 5 vendedor (inicio) */
+.rank-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:14px;margin-bottom:14px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 6px;border-top:1px solid rgba(255,255,255,.05)}
+.rank-row:first-of-type{border-top:none}
+.rank-pos{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text-mute);width:26px;text-align:center;flex-shrink:0}
+.rank-medalla{font-size:18px;width:26px;text-align:center;flex-shrink:0}
+.rank-nombre{flex:1;font-size:14px;color:var(--text)}
+.rank-ventas{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--accent)}
+.rank-ventas .u{font-size:10px;color:var(--text-mute);font-weight:400;margin-left:2px}
+
+/* Modo presentación (B.2 lo activa; estilos base acá) */
+body.presentacion .sidebar,
+body.presentacion .bottomnav,
+body.presentacion .header{display:none !important}
+body.presentacion .analisis-detallado{display:none !important}
+body.presentacion .main{padding:18px 24px}
+
 </style>
 </head>
 <body>
@@ -1067,6 +1172,14 @@ a{color:var(--accent);text-decoration:none}
         <div class="kpi">
           <div class="kpi-label">Equipo más vendido</div>
           <div class="kpi-value small" id="kEquipoTop">—</div>
+        </div>
+      </div>
+
+
+      <div class="rank-card">
+        <div class="card-title">🏆 Ranking del mes · Top 5</div>
+        <div id="vRankingLista">
+          <div class="vd-empty" style="padding:18px">Cargando ranking...</div>
         </div>
       </div>
 
@@ -1234,53 +1347,117 @@ a{color:var(--accent);text-decoration:none}
       <div class="content">
         <!-- DASHBOARD -->
         <div id="aDashboard" class="a-page">
-          <div class="page-title"><span class="accent-bar"></span><span>Dashboard</span></div>
+          <div class="page-title">
+            <span class="accent-bar"></span><span>Dashboard</span>
+            <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="togglePresentacion()" id="btnPresentacion">▣ Presentación</button>
+          </div>
 
           <div class="mes-selector">
             <select id="aMesSel"></select>
             <button class="btn btn-secondary btn-sm" onclick="cargarDashboard()">Actualizar</button>
           </div>
 
-          <div class="kpi-grid">
-            <div class="kpi highlight">
-              <div class="kpi-label">Comisiones totales aprobadas</div>
-              <div class="kpi-value" id="dKAprob">$0</div>
+          <!-- ===== BLOQUES CLAVE (presentación) ===== -->
+          <!-- Hero comisión + Ventas/Pendientes -->
+          <div class="hero-grid">
+            <div class="hero-card">
+              <div class="hero-label">Comisión total · este mes</div>
+              <div class="hero-value-row">
+                <span class="hero-value" id="dHeroComision">$0</span>
+                <span class="var-chip var-flat" id="dHeroVar">—</span>
+              </div>
+              <div class="hero-spark" id="dHeroSpark"></div>
             </div>
-            <div class="kpi">
-              <div class="kpi-label">Pendientes (estimado)</div>
-              <div class="kpi-value" id="dKPend">$0</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Ventas del mes</div>
-              <div class="kpi-value" id="dKVentas">0</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Equipo más vendido</div>
-              <div class="kpi-value small" id="dKEquipoTop">—</div>
+            <div class="hero-side">
+              <div class="kpi-mini">
+                <div class="l">Ventas</div>
+                <div style="display:flex;align-items:baseline;gap:8px">
+                  <span class="v" id="dVentas">0</span>
+                  <span class="var-inline flat" id="dVentasVar">—</span>
+                </div>
+              </div>
+              <div class="kpi-mini">
+                <div class="l">Pendientes</div>
+                <div style="display:flex;align-items:baseline;gap:8px">
+                  <span class="v" id="dPend" style="color:var(--orange,#f0993f)">0</span>
+                  <span class="s">por revisar</span>
+                </div>
+              </div>
             </div>
           </div>
 
+          <!-- Fila KPIs: ticket / forma pago / localidad -->
+          <div class="kpi-grid three" style="margin-bottom:14px">
+            <div class="kpi-mini">
+              <div class="l">🧾 Ticket promedio</div>
+              <div class="v" id="dTicket">$0</div>
+              <div class="s" id="dTicketVar">—</div>
+            </div>
+            <div class="kpi-mini">
+              <div class="l">💳 Forma de pago top</div>
+              <div class="v accent" id="dFormaPagoTop">—</div>
+              <div class="s" id="dFormaPagoPct">—</div>
+            </div>
+            <div class="kpi-mini">
+              <div class="l">📍 Localidad top</div>
+              <div class="v" id="dLocalidadTop">—</div>
+              <div class="s" id="dLocalidadSub">—</div>
+            </div>
+          </div>
+
+          <!-- Evolución del equipo -->
           <div class="card">
-            <div class="card-title">🏆 Podio del mes</div>
-            <div class="podio" id="podioContainer"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div class="card-title" style="margin:0">📈 Evolución del equipo</div>
+              <span style="font-size:10px;color:var(--text-mute)">click en una fila para ver detalle</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="tabla-equipo">
+                <thead>
+                  <tr>
+                    <th>Vendedor</th>
+                    <th class="c">Tendencia</th>
+                    <th class="r">Ventas</th>
+                    <th class="r">$ prom.</th>
+                    <th class="r">Comisión</th>
+                    <th class="r">Δ</th>
+                  </tr>
+                </thead>
+                <tbody id="dTablaEquipo"></tbody>
+              </table>
+            </div>
+            <div class="ver-todos hidden" id="dVerTodos" onclick="toggleVerTodosVendedores()"></div>
           </div>
 
-          <div class="dashboard-grid">
-            <div class="chart-box">
-              <h3>Comisiones por vendedor</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartVendedores"></canvas></div>
+          <!-- Detalle del vendedor seleccionado -->
+          <div class="vend-detalle" id="dVendDetalle">
+            <div class="vd-empty">Seleccioná un vendedor en la tabla para ver su detalle</div>
+          </div>
+
+          <!-- ===== ANÁLISIS DETALLADO (fuera de presentación) ===== -->
+          <div class="analisis-detallado">
+            <div class="dashboard-grid">
+              <div class="chart-box">
+                <h3>Forma de pago</h3>
+                <div class="chart-canvas-wrap"><canvas id="chartFormaPago"></canvas></div>
+              </div>
+              <div class="chart-box">
+                <h3>Equipos más vendidos</h3>
+                <div class="chart-canvas-wrap"><canvas id="chartEquipos"></canvas></div>
+              </div>
+              <div class="chart-box">
+                <h3>Planes más vendidos</h3>
+                <div class="chart-canvas-wrap"><canvas id="chartPlanes"></canvas></div>
+              </div>
+              <div class="chart-box">
+                <h3>Comisiones por vendedor</h3>
+                <div class="chart-canvas-wrap"><canvas id="chartVendedores"></canvas></div>
+              </div>
             </div>
-            <div class="chart-box">
-              <h3>Equipos más vendidos</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartEquipos"></canvas></div>
-            </div>
-            <div class="chart-box">
-              <h3>Planes más vendidos</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartPlanes"></canvas></div>
-            </div>
-            <div class="chart-box">
-              <h3>Forma de pago</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartFormaPago"></canvas></div>
+
+            <div class="card">
+              <div class="card-title">📍 Ranking de localidades</div>
+              <div class="loc-grid" id="dRankingLoc"></div>
             </div>
           </div>
         </div>
@@ -1641,6 +1818,9 @@ async function cargarInicioVendedor() {
     br.classList.remove("hidden");
     $("brNum").textContent = r.rechazadasV;
   } else br.classList.add("hidden");
+
+  // Cargar ranking Top 5 del mes
+  cargarRankingVendedor();
 }
 
 // ============================================================
@@ -2154,66 +2334,321 @@ function irAdmin(pageId) {
 // ============================================================
 // ADMIN - DASHBOARD
 // ============================================================
+// ============================================================
+// DASHBOARD REDISEÑADO v1.4 (Patch B.1)
+// ============================================================
+
+// Estado del dashboard (vendedores cacheados para la tabla + detalle)
+state.dash = { vendedores: [], etiquetas: [], expandido: false, vendSel: null };
+
+// Helper: genera un mini-sparkline SVG a partir de una serie de números
+function sparklineSVG(serie, color, w, h) {
+  w = w || 90; h = h || 20;
+  if (!serie || !serie.length) return "";
+  const max = Math.max(...serie, 1);
+  const min = Math.min(...serie, 0);
+  const rango = (max - min) || 1;
+  const pad = 2;
+  const pts = serie.map((val, i) => {
+    const x = pad + (i * (w - pad * 2)) / Math.max(serie.length - 1, 1);
+    const y = h - pad - ((val - min) / rango) * (h - pad * 2);
+    return x.toFixed(1) + "," + y.toFixed(1);
+  });
+  const ultimo = pts[pts.length - 1].split(",");
+  return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+    '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + color + '" stroke-width="1.5"/>' +
+    '<circle cx="' + ultimo[0] + '" cy="' + ultimo[1] + '" r="2" fill="' + color + '"/></svg>';
+}
+
+// Helper: chip de variación (devuelve {clase, texto})
+function varChip(v) {
+  v = Number(v) || 0;
+  if (v > 0) return { clase: "var-up", inline: "up", txt: "▲ " + v + "%" };
+  if (v < 0) return { clase: "var-down", inline: "down", txt: "▼ " + Math.abs(v) + "%" };
+  return { clase: "var-flat", inline: "flat", txt: "—" };
+}
+
 async function cargarDashboard() {
   const mes = $("aMesSel").value || state.mesActualNombre;
-  const [resR, anR] = await Promise.all([
-    api("obtenerResumen", { vendedor: "ADMIN", mes }),
-    api("obtenerAnalisis", { mes })
-  ]);
+  const anR = await api("obtenerAnalisis", { mes });
 
-  if (resR.ok) {
-    $("dKAprob").textContent = fmtMoney(resR.totalComision);
-    $("dKVentas").textContent = resR.cantidadVentas || 0;
-    $("dKEquipoTop").textContent = resR.equipoTop || "—";
+  if (!anR.ok || !anR.analisis) {
+    toast("Error cargando análisis", "err");
+    return;
+  }
+  const a = anR.analisis;
+  state.dash.etiquetas = a.etiquetasMeses || [];
+
+  // --- Hero comisión ---
+  $("dHeroComision").textContent = fmtMoney(a.comisionTotal);
+  const vc = varChip(a.comisionVar);
+  const heroVar = $("dHeroVar");
+  heroVar.className = "var-chip " + vc.clase;
+  heroVar.textContent = vc.txt;
+
+  // Sparkline del hero: serie = suma de comisiones del equipo por mes
+  const serieEquipo = state.dash.etiquetas.map((_, idx) => {
+    let suma = 0;
+    for (const v in a.porVendedor) suma += (a.porVendedor[v].serie[idx] || 0);
+    return suma;
+  });
+  $("dHeroSpark").innerHTML = sparklineSVG(serieEquipo, "#1e9cd7", 380, 46);
+
+  // --- Ventas / Pendientes ---
+  $("dVentas").textContent = a.ventas || 0;
+  const vv = varChip(a.ventasVar);
+  const dvv = $("dVentasVar");
+  dvv.className = "var-inline " + vv.inline;
+  dvv.textContent = vv.txt;
+  $("dPend").textContent = fmtMoney(a.totalPendientes || 0);
+
+  // --- KPIs mini ---
+  $("dTicket").textContent = fmtMoney(a.ticketPromedio);
+  const tv = varChip(a.ticketVar);
+  $("dTicketVar").innerHTML = '<span class="var-inline ' + tv.inline + '">' + tv.txt + '</span> vs mes ant.';
+  $("dFormaPagoTop").textContent = a.formaPagoTop || "—";
+  $("dFormaPagoPct").textContent = (a.formaPagoTopPct || 0) + "% de las ventas";
+  if (a.localidadTop) {
+    $("dLocalidadTop").textContent = a.localidadTop.localidad;
+    $("dLocalidadSub").textContent = fmtMoney(a.localidadTop.comision) + " · " + a.localidadTop.ventas + " ventas";
+  } else {
+    $("dLocalidadTop").textContent = "—";
+    $("dLocalidadSub").textContent = "sin datos";
   }
 
-  if (anR.ok && anR.analisis) {
-    const a = anR.analisis;
-    $("dKPend").textContent = fmtMoney(a.totalPendientes || 0);
+  // Badge pendientes en sidebar
+  const badge = $("adNumPend");
+  if (badge) {
+    const cantPend = (a.podio ? 0 : 0); // se actualiza abajo con resumen si hace falta
+  }
 
-    // Pendientes en sidebar badge
-    if (resR.ok) {
-      const badge = $("adNumPend");
-      if (resR.pendientesV > 0) {
-        badge.textContent = resR.pendientesV;
-        badge.classList.remove("hidden");
-      } else badge.classList.add("hidden");
-    }
+  // --- Tabla evolución del equipo ---
+  // Armar array ordenado por comisión desc
+  const vendArr = Object.keys(a.porVendedor).map(nombre => ({
+    nombre,
+    comision: a.porVendedor[nombre].comision,
+    ventas: a.porVendedor[nombre].ventas,
+    ticket: a.porVendedor[nombre].ticket,
+    variacion: a.porVendedor[nombre].variacion,
+    serie: a.porVendedor[nombre].serie
+  })).sort((x, y) => y.comision - x.comision);
 
-    // Podio
-    renderPodio(a.podio || []);
+  state.dash.vendedores = vendArr;
+  state.dash.expandido = false;
+  renderTablaEquipo();
 
-    // Charts
-    renderChartVendedores(a.porVendedor || {});
-    renderChartEquipos(a.porEquipo || {});
-    renderChartPlanes(a.porPlan || {});
-    renderChartFormaPago(a.porFormaPago || {});
+  // Limpiar detalle
+  state.dash.vendSel = null;
+  $("dVendDetalle").innerHTML = '<div class="vd-empty">Seleccioná un vendedor en la tabla para ver su detalle</div>';
+
+  // --- Ranking de localidades ---
+  renderRankingLocalidades(a.rankingLocalidades || []);
+
+  // --- Charts de abajo ---
+  renderChartFormaPago(a.porFormaPago || {});
+  renderChartEquipos(a.porEquipo || {});
+  renderChartPlanes(a.porPlan || {});
+  renderChartVendedoresMonto(vendArr);
+}
+
+function renderTablaEquipo() {
+  const cont = $("dTablaEquipo");
+  const arr = state.dash.vendedores;
+  if (!arr.length) {
+    cont.innerHTML = '<tr><td colspan="6" class="c" style="color:var(--text-mute);padding:20px">Sin ventas aprobadas este mes</td></tr>';
+    $("dVerTodos").classList.add("hidden");
+    return;
+  }
+  const medallas = ["oro", "plata", "bronce"];
+  const simbolos = ["①", "②", "③"];
+  const mostrar = state.dash.expandido ? arr : arr.slice(0, 4);
+
+  let html = "";
+  mostrar.forEach((v, i) => {
+    const vc = varChip(v.variacion);
+    const colorSpark = v.variacion >= 0 ? "#4ade80" : "#f87171";
+    const medalla = i < 3
+      ? '<span class="medalla ' + medallas[i] + '">' + simbolos[i] + '</span>'
+      : '';
+    const selClass = state.dash.vendSel === v.nombre ? " sel" : "";
+    html += '<tr class="' + selClass.trim() + '" onclick="verDetalleVendedor(\'' + v.nombre.replace(/'/g, "\\'") + '\')">' +
+      '<td>' + medalla + escapeHtml(v.nombre) + '</td>' +
+      '<td class="c">' + sparklineSVG(v.serie, colorSpark, 90, 20) + '</td>' +
+      '<td class="r">' + v.ventas + '</td>' +
+      '<td class="r">' + fmtMoney(v.ticket) + '</td>' +
+      '<td class="r com">' + fmtMoney(v.comision) + '</td>' +
+      '<td class="r"><span class="var-inline ' + vc.inline + '">' + vc.txt + '</span></td>' +
+      '</tr>';
+  });
+  cont.innerHTML = html;
+
+  // Botón ver todos
+  const vt = $("dVerTodos");
+  if (arr.length > 4) {
+    vt.classList.remove("hidden");
+    vt.textContent = state.dash.expandido
+      ? "▲ ver menos"
+      : "+ " + (arr.length - 4) + " vendedores · ver todos →";
+  } else {
+    vt.classList.add("hidden");
   }
 }
 
-function renderPodio(podio) {
-  const cont = $("podioContainer");
-  if (!podio.length) {
-    cont.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin datos</div>';
+function toggleVerTodosVendedores() {
+  state.dash.expandido = !state.dash.expandido;
+  renderTablaEquipo();
+}
+
+function verDetalleVendedor(nombre) {
+  const v = state.dash.vendedores.find(x => x.nombre === nombre);
+  if (!v) return;
+  state.dash.vendSel = nombre;
+  renderTablaEquipo(); // para resaltar la fila
+
+  const iniciales = nombre.split(" ").map(p => p.charAt(0)).join("").substring(0, 2).toUpperCase();
+  const colorSpark = v.variacion >= 0 ? "#4ade80" : "#f87171";
+  const vc = varChip(v.variacion);
+
+  // Mejor mes de la serie
+  let mejorIdx = 0, mejorVal = -1;
+  v.serie.forEach((val, i) => { if (val > mejorVal) { mejorVal = val; mejorIdx = i; } });
+  const mejorMes = state.dash.etiquetas[mejorIdx] || "—";
+
+  $("dVendDetalle").innerHTML =
+    '<div class="vd-head">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<div class="vd-avatar">' + iniciales + '</div>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:600;color:#fff">' + escapeHtml(nombre) + '</div>' +
+          '<div style="font-size:10px;color:var(--text-dim)">comisión ' +
+            '<span class="var-inline ' + vc.inline + '">' + vc.txt + '</span> vs mes anterior</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--text-mute)">mejor mes: <span style="color:#4ade80">' + mejorMes + '</span></div>' +
+    '</div>' +
+    '<div class="vd-kpis">' +
+      '<div><div class="l">Comisión mes</div><div class="v" style="color:var(--accent)">' + fmtMoney(v.comision) + '</div></div>' +
+      '<div><div class="l">Ventas</div><div class="v" style="color:#fff">' + v.ventas + '</div></div>' +
+      '<div><div class="l">Ticket prom.</div><div class="v" style="color:#fff">' + fmtMoney(v.ticket) + '</div></div>' +
+    '</div>' +
+    '<div>' + sparklineGrande(v.serie, state.dash.etiquetas) + '</div>';
+}
+
+// Sparkline grande para la card de detalle (con ejes y etiquetas)
+function sparklineGrande(serie, etiquetas) {
+  const w = 600, h = 120, padL = 40, padB = 22, padT = 12;
+  if (!serie || !serie.length) return "";
+  const max = Math.max(...serie, 1);
+  const innerW = w - padL - 10;
+  const innerH = h - padB - padT;
+  const pts = serie.map((val, i) => {
+    const x = padL + (i * innerW) / Math.max(serie.length - 1, 1);
+    const y = padT + innerH - (val / max) * innerH;
+    return { x, y, val };
+  });
+  const linea = pts.map(p => p.x.toFixed(1) + "," + p.y.toFixed(1)).join(" ");
+  const area = padL + "," + (padT + innerH) + " " + linea + " " + pts[pts.length - 1].x.toFixed(1) + "," + (padT + innerH);
+
+  let circulos = "", labels = "";
+  pts.forEach((p, i) => {
+    const ultimo = i === pts.length - 1;
+    circulos += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + (ultimo ? 4 : 2.5) + '" fill="#1e9cd7"' + (ultimo ? ' stroke="#fff" stroke-width="1.5"' : '') + '/>';
+    const et = etiquetas[i] || "";
+    labels += '<text x="' + p.x.toFixed(1) + '" y="' + (h - 6) + '" fill="' + (ultimo ? '#1e9cd7' : 'var(--text-mute)') + '" font-size="9" text-anchor="middle">' + et + '</text>';
+  });
+
+  return '<svg width="100%" viewBox="0 0 ' + w + ' ' + h + '" style="height:110px">' +
+    '<defs><linearGradient id="vdGrad" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#1e9cd7" stop-opacity="0.3"/>' +
+    '<stop offset="100%" stop-color="#1e9cd7" stop-opacity="0"/></linearGradient></defs>' +
+    '<line x1="' + padL + '" y1="' + (padT + innerH) + '" x2="' + (w - 10) + '" y2="' + (padT + innerH) + '" stroke="rgba(255,255,255,.08)" stroke-width="0.5"/>' +
+    '<polygon points="' + area + '" fill="url(#vdGrad)"/>' +
+    '<polyline points="' + linea + '" fill="none" stroke="#1e9cd7" stroke-width="2.5"/>' +
+    circulos + labels + '</svg>';
+}
+
+function renderRankingLocalidades(ranking) {
+  const cont = $("dRankingLoc");
+  if (!ranking.length) {
+    cont.innerHTML = '<div class="vd-empty" style="grid-column:1/-1">Sin datos de localidades</div>';
     return;
   }
-  // Mostrar siempre 3 posiciones (rellenar con vacío si hay menos)
-  const orden = [1, 0, 2]; // visualmente 2do, 1ro, 3ro
-  const filas = [podio[1] || null, podio[0] || null, podio[2] || null];
-  const clases = ["p2", "p1", "p3"];
-  const nums = ["2", "1", "3"];
+  const simbolos = ["①", "②", "③"];
+  const colores = ["#f0993f", "#c0c0c0", "#b4855a"];
+  const top = ranking.slice(0, 3);
   let html = "";
-  for (let i = 0; i < 3; i++) {
-    const p = filas[i];
-    html += `<div class="podio-pos ${clases[i]}">
-      <div class="podio-num">${nums[i]}</div>
-      <div class="podio-nombre">${p ? p.vendedor : "—"}</div>
-      <div class="podio-monto">${p ? fmtMoney(p.monto) : "—"}</div>
-    </div>`;
+  top.forEach((l, i) => {
+    html += '<div class="loc-card' + (i === 0 ? ' top' : '') + '">' +
+      '<span class="n"><span style="color:' + colores[i] + '">' + simbolos[i] + '</span> ' + escapeHtml(l.localidad) + '</span>' +
+      '<div class="m' + (i === 0 ? ' accent' : '') + '">' + fmtMoney(l.comision) + '</div>' +
+      '<div class="s">' + l.ventas + ' ventas</div></div>';
+  });
+  const resto = ranking.length - 3;
+  if (resto > 0) {
+    html += '<div class="loc-card"><span class="n" style="color:var(--text-dim)">+ ' + resto + ' localidad(es)</span>' +
+      '<div class="s" style="margin-top:6px">en el ranking</div></div>';
   }
   cont.innerHTML = html;
 }
 
+// Chart de comisiones por vendedor (recibe el array ya armado)
+function renderChartVendedoresMonto(vendArr) {
+  destroyChart("vendedores");
+  if (!vendArr.length) return;
+  const labels = vendArr.map(v => v.nombre);
+  const valores = vendArr.map(v => v.comision);
+  state.charts.vendedores = new Chart($("chartVendedores"), {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Comisión aprobada", data: valores, backgroundColor: "#1e9cd7", borderRadius: 3 }] },
+    options: chartOpts({ moneyY: true })
+  });
+}
+
+// ============================================================
+// RANKING TOP 5 (inicio del vendedor)
+// ============================================================
+async function cargarRankingVendedor() {
+  const r = await api("obtenerRanking", { mes: state.mesActualNombre });
+  const cont = $("vRankingLista");
+  if (!cont) return;
+  if (!r.ok || !r.ranking || !r.ranking.length) {
+    cont.innerHTML = '<div class="vd-empty" style="padding:18px">Todavía no hay ventas aprobadas este mes</div>';
+    return;
+  }
+  const top5 = r.ranking.slice(0, 5);
+  const medallas = ["🥇", "🥈", "🥉"];
+  let html = "";
+  top5.forEach((v, i) => {
+    const izq = i < 3
+      ? '<div class="rank-medalla">' + medallas[i] + '</div>'
+      : '<div class="rank-pos">' + (i + 1) + '</div>';
+    html += '<div class="rank-row">' + izq +
+      '<div class="rank-nombre">' + escapeHtml(v.vendedor) + '</div>' +
+      '<div class="rank-ventas">' + v.ventas + '<span class="u">ventas</span></div>' +
+      '</div>';
+  });
+  cont.innerHTML = html;
+}
+
+// ============================================================
+// MODO PRESENTACIÓN
+// ============================================================
+function togglePresentacion() {
+  document.body.classList.toggle("presentacion");
+  const activo = document.body.classList.contains("presentacion");
+  const btn = $("btnPresentacion");
+  if (btn) btn.textContent = activo ? "✕ Salir" : "▣ Presentación";
+}
+
+// Helper seguro para escapar HTML en nombres
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+
+// ============================================================
+// CHARTS AUXILIARES (reutilizados del dashboard)
+// ============================================================
 function destroyChart(id) {
   if (state.charts[id]) {
     state.charts[id].destroy();
@@ -2221,47 +2656,18 @@ function destroyChart(id) {
   }
 }
 
-function renderChartVendedores(data) {
-  destroyChart("vendedores");
-  const labels = Object.keys(data);
-  const valores = labels.map(k => data[k].monto);
-  if (!labels.length) return;
-  state.charts.vendedores = new Chart($("chartVendedores"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Comisión aprobada",
-        data: valores,
-        backgroundColor: "#1e9cd7",
-        borderRadius: 3
-      }]
-    },
-    options: chartOpts({ moneyY: true })
-  });
-}
-
 function renderChartEquipos(data) {
   destroyChart("equipos");
   const labels = Object.keys(data);
   const valores = labels.map(k => data[k]);
   if (!labels.length) {
-    // Si no hay equipos, mostrar mensaje vacío en el canvas
     const ctx = $("chartEquipos").getContext("2d");
     ctx.clearRect(0, 0, $("chartEquipos").width, $("chartEquipos").height);
     return;
   }
   state.charts.equipos = new Chart($("chartEquipos"), {
     type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Cantidad vendida",
-        data: valores,
-        backgroundColor: "#42b8ee",
-        borderRadius: 3
-      }]
-    },
+    data: { labels, datasets: [{ label: "Cantidad vendida", data: valores, backgroundColor: "#42b8ee", borderRadius: 3 }] },
     options: chartOpts({ horizontal: true })
   });
 }
@@ -2277,15 +2683,7 @@ function renderChartPlanes(data) {
   }
   state.charts.planes = new Chart($("chartPlanes"), {
     type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Cantidad vendida",
-        data: valores,
-        backgroundColor: "#2fbf71",
-        borderRadius: 3
-      }]
-    },
+    data: { labels, datasets: [{ label: "Cantidad vendida", data: valores, backgroundColor: "#2fbf71", borderRadius: 3 }] },
     options: chartOpts({ horizontal: true })
   });
 }
@@ -2297,19 +2695,11 @@ function renderChartFormaPago(data) {
   if (!labels.length) return;
   state.charts.formaPago = new Chart($("chartFormaPago"), {
     type: "doughnut",
-    data: {
-      labels,
-      datasets: [{
-        data: valores,
-        backgroundColor: ["#1e9cd7", "#42b8ee", "#0b6695", "#2fbf71"]
-      }]
-    },
+    data: { labels, datasets: [{ data: valores, backgroundColor: ["#1e9cd7", "#2fbf71", "#f0993f", "#42b8ee"] }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: "#8aa3c8", font: { family: "Barlow" } } }
-      }
+      plugins: { legend: { labels: { color: "#8aa3c8", font: { family: "Barlow" } } } }
     }
   });
 }
@@ -2319,20 +2709,13 @@ function chartOpts({ moneyY, horizontal } = {}) {
     responsive: true,
     maintainAspectRatio: false,
     indexAxis: horizontal ? "y" : "x",
-    plugins: {
-      legend: { display: false }
-    },
+    plugins: { legend: { display: false } },
     scales: {
-      x: {
-        ticks: { color: "#8aa3c8" },
-        grid: { color: "#1d3258" }
-      },
+      x: { ticks: { color: "#8aa3c8" }, grid: { color: "#1d3258" } },
       y: {
         ticks: {
           color: "#8aa3c8",
-          callback: function(v) {
-            return moneyY ? "$" + Number(v).toLocaleString("es-AR") : v;
-          }
+          callback: function(v) { return moneyY ? "$" + Number(v).toLocaleString("es-AR") : v; }
         },
         grid: { color: "#1d3258" }
       }
