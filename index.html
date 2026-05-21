@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
 /* ============================================================
    VARIABLES Y RESET
@@ -968,6 +969,26 @@ a{color:var(--accent);text-decoration:none}
 .flex-gap{display:flex;gap:8px;align-items:center}
 .divider{height:1px;background:var(--border);margin:14px 0}
 
+
+
+/* Dashboard admin v6 - prueba */
+#adminDashboardV6{max-width:1180px;margin:0 auto 24px;}
+#adminDashboardV6 .empty{color:var(--text-mute);font-size:12px;text-align:center;padding:12px;border:1px dashed rgba(255,255,255,.12);border-radius:6px;}
+@media (max-width: 720px){
+  #screenAdmin,
+  #screenAdmin .admin-layout,
+  #screenAdmin .admin-main,
+  #screenAdmin .header,
+  #screenAdmin .content,
+  #screenAdmin .a-page{width:100%!important;max-width:100vw!important;min-width:0!important;overflow-x:hidden;}
+  #adminDashboardV6{width:100%!important;max-width:100%!important;padding:16px!important;overflow:hidden;}
+  #adminDashboardV6 [style*="grid-template-columns: 2fr 1fr"],
+  #adminDashboardV6 [style*="grid-template-columns: 1fr 1fr 1fr"],
+  #adminDashboardV6 [style*="grid-template-columns: repeat(4, 1fr)"]{grid-template-columns:1fr!important;}
+  #adminDashboardV6 [style*="justify-content: space-between"]{align-items:flex-start!important;gap:10px;}
+  #adminDashboardV6 [style*="margin-left: auto"]{margin-left:0!important;display:block;width:100%;}
+}
+
 </style>
 </head>
 <body>
@@ -1234,55 +1255,208 @@ a{color:var(--accent);text-decoration:none}
       <div class="content">
         <!-- DASHBOARD -->
         <div id="aDashboard" class="a-page">
-          <div class="page-title"><span class="accent-bar"></span><span>Dashboard</span></div>
+<div id="adminDashboardV6" style="background: #050d1a; border-radius: var(--border-radius-lg); padding: 24px; font-family: 'Barlow', sans-serif;">
 
-          <div class="mes-selector">
-            <select id="aMesSel"></select>
-            <button class="btn btn-secondary btn-sm" onclick="cargarDashboard()">Actualizar</button>
-          </div>
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+    <div>
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 500; letter-spacing: 1px;"><span style="color: #1e9cd7;">SS</span> <span style="color: #fff;">COMERCIAL</span></span>
+      <p style="margin: 2px 0 0; font-size: 11px; color: #6b7a90; text-transform: uppercase; letter-spacing: 1.5px;">Dashboard</p>
+    </div>
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <span style="font-size: 10px; padding: 5px 12px; background: rgba(30,156,215,0.15); border: 0.5px solid #1e9cd7; color: #1e9cd7; border-radius: 12px; font-weight: 500;"><i class="ti ti-presentation" style="font-size: 12px; vertical-align: -1px;"></i> Presentación</span>
+      <span style="font-size: 10px; padding: 5px 10px; border: 0.5px solid rgba(255,255,255,0.15); color: #8a98ad; border-radius: 12px;">Localidad ▾</span>
+    </div>
+  </div>
 
-          <div class="kpi-grid">
-            <div class="kpi highlight">
-              <div class="kpi-label">Comisiones totales aprobadas</div>
-              <div class="kpi-value" id="dKAprob">$0</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Pendientes (estimado)</div>
-              <div class="kpi-value" id="dKPend">$0</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Ventas del mes</div>
-              <div class="kpi-value" id="dKVentas">0</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Equipo más vendido</div>
-              <div class="kpi-value small" id="dKEquipoTop">—</div>
-            </div>
-          </div>
+  <div style="background: rgba(10,24,48,0.6); border: 0.5px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px 12px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+    <span style="font-size: 10px; color: #6b7a90; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 500;"><i class="ti ti-calendar" style="font-size: 12px; vertical-align: -1px;"></i> Rango</span>
+    <div id="v6MesChips" style="display: flex; gap: 5px; flex-wrap: wrap;"></div>
+    <span style="margin-left: auto; font-size: 10px; color: #6b7a90;"><span id="v6PeriodoLabel">Mes seleccionado</span></span>
+  </div>
 
-          <div class="card">
-            <div class="card-title">🏆 Podio del mes</div>
-            <div class="podio" id="podioContainer"></div>
-          </div>
+  <p style="margin: 0 0 8px; font-size: 9px; color: #4a5a72; text-transform: uppercase; letter-spacing: 2px;">— Vista de presentación (bloques clave) —</p>
 
-          <div class="dashboard-grid">
-            <div class="chart-box">
-              <h3>Comisiones por vendedor</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartVendedores"></canvas></div>
-            </div>
-            <div class="chart-box">
-              <h3>Equipos más vendidos</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartEquipos"></canvas></div>
-            </div>
-            <div class="chart-box">
-              <h3>Planes más vendidos</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartPlanes"></canvas></div>
-            </div>
-            <div class="chart-box">
-              <h3>Forma de pago</h3>
-              <div class="chart-canvas-wrap"><canvas id="chartFormaPago"></canvas></div>
-            </div>
-          </div>
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px;">
+    <div style="background: linear-gradient(135deg, rgba(30,156,215,0.08) 0%, rgba(30,156,215,0.01) 100%); border: 0.5px solid rgba(30,156,215,0.25); border-radius: 8px; padding: 18px 20px;">
+      <p style="margin: 0 0 4px; font-size: 10px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.5px;">Comisión total · este mes</p>
+      <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px;">
+        <p style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 500; color: #fff; letter-spacing: 0.5px;"><span id="v6TotalComision">$0</span></p>
+        <span style="font-size: 12px; color: #4ade80; background: rgba(74,222,128,0.12); padding: 3px 8px; border-radius: 10px; font-weight: 500;"><span id="v6ComisionTrend">mes actual</span></span>
+      </div>
+      <svg viewBox="0 0 400 50" style="width: 100%; height: 44px;">
+        <defs><linearGradient id="g1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1e9cd7" stop-opacity="0.4"/><stop offset="100%" stop-color="#1e9cd7" stop-opacity="0"/></linearGradient></defs>
+        <polygon points="0,38 60,32 120,28 180,24 240,18 300,26 360,15 400,10 400,50 0,50" fill="url(#g1)"/>
+        <polyline points="0,38 60,32 120,28 180,24 240,18 300,26 360,15 400,10" fill="none" stroke="#1e9cd7" stroke-width="2"/>
+        <circle cx="400" cy="10" r="3.5" fill="#1e9cd7" stroke="#050d1a" stroke-width="2"/>
+      </svg>
+    </div>
+    <div style="display: grid; grid-template-rows: 1fr 1fr; gap: 8px;">
+      <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px;">
+        <p style="margin: 0; font-size: 9px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;">Ventas</p>
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <p style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 500; color: #fff;"><span id="v6VentasMes">0</span></p>
+          <span style="font-size: 10px; color: #f87171;"><span id="v6VentasSub">ventas</span></span>
+        </div>
+      </div>
+      <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px;">
+        <p style="margin: 0; font-size: 9px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;">Pendientes</p>
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <p style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 500; color: #f0993f;"><span id="v6PendientesCount">0</span></p>
+          <span style="font-size: 10px; color: #6b7a90;"><span id="v6PendientesSub">por revisar</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+    <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 14px;">
+      <p style="margin: 0 0 2px; font-size: 9px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;"><i class="ti ti-receipt" style="font-size: 11px; vertical-align: -1px;"></i> Ticket promedio</p>
+      <p style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 500; color: #fff;"><span id="v6TicketPromedio">$0</span></p>
+      <p style="margin: 2px 0 0; font-size: 10px; color: #4ade80;"><span id="v6TicketSub">ticket promedio</span></p>
+    </div>
+    <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 14px;">
+      <p style="margin: 0 0 2px; font-size: 9px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;"><i class="ti ti-credit-card" style="font-size: 11px; vertical-align: -1px;"></i> Forma de pago top</p>
+      <p style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 500; color: #1e9cd7;"><span id="v6FormaPagoTop">—</span></p>
+      <p style="margin: 2px 0 0; font-size: 10px; color: #6b7a90;"><span id="v6FormaPagoSub">sin datos</span></p>
+    </div>
+    <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 14px;">
+      <p style="margin: 0 0 2px; font-size: 9px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;"><i class="ti ti-map-pin" style="font-size: 11px; vertical-align: -1px;"></i> Localidad top</p>
+      <p style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 500; color: #fff;"><span id="v6LocalidadTop">—</span></p>
+      <p style="margin: 2px 0 0; font-size: 10px; color: #6b7a90;"><span id="v6LocalidadSub">sin datos</span></p>
+    </div>
+  </div>
+
+  <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <p style="margin: 0; font-size: 10px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;"><i class="ti ti-trending-up" style="font-size: 12px; vertical-align: -1px;"></i> Evolución del equipo · este mes</p>
+      <span style="font-size: 10px; color: #6b7a90;">click en una fila para ver detalle</span>
+    </div>
+    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+      <thead>
+        <tr style="color: #6b7a90; text-transform: uppercase; font-size: 9px; letter-spacing: 1px;">
+          <th style="text-align: left; padding: 6px 8px; font-weight: 400;">Vendedor</th>
+          <th style="text-align: center; padding: 6px 8px; font-weight: 400;">Tendencia</th>
+          <th style="text-align: right; padding: 6px 8px; font-weight: 400;">Ventas</th>
+          <th style="text-align: right; padding: 6px 8px; font-weight: 400;">$ prom.</th>
+          <th style="text-align: right; padding: 6px 8px; font-weight: 400;">Comisión</th>
+          <th style="text-align: right; padding: 6px 8px; font-weight: 400;">Δ</th>
+        </tr>
+      </thead>
+      <tbody style="color: #fff;">
+        <tr style="border-top: 0.5px solid rgba(255,255,255,0.05); background: rgba(30,156,215,0.04);">
+          <td style="padding: 9px 8px;"><span style="color:#f0993f;font-size:10px;">①</span> Marlene S.</td>
+          <td style="padding: 6px 8px; text-align: center;"><svg width="90" height="20" viewBox="0 0 90 20"><polyline points="2,15 18,11 36,10 54,6 72,8 88,3" fill="none" stroke="#4ade80" stroke-width="1.5"/><circle cx="88" cy="3" r="2" fill="#4ade80"/></svg></td>
+          <td style="text-align: right; padding: 9px 8px;">19</td>
+          <td style="text-align: right; padding: 9px 8px;">$87.5k</td>
+          <td style="text-align: right; padding: 9px 8px; color: #1e9cd7; font-weight: 500;">$148.900</td>
+          <td style="text-align: right; padding: 9px 8px; color: #4ade80;">▲ 18%</td>
+        </tr>
+        <tr style="border-top: 0.5px solid rgba(255,255,255,0.05);">
+          <td style="padding: 9px 8px;"><span style="color:#c0c0c0;font-size:10px;">②</span> Federico A.</td>
+          <td style="padding: 6px 8px; text-align: center;"><svg width="90" height="20" viewBox="0 0 90 20"><polyline points="2,16 18,15 36,12 54,10 72,8 88,5" fill="none" stroke="#4ade80" stroke-width="1.5"/><circle cx="88" cy="5" r="2" fill="#4ade80"/></svg></td>
+          <td style="text-align: right; padding: 9px 8px;">16</td>
+          <td style="text-align: right; padding: 9px 8px;">$92.3k</td>
+          <td style="text-align: right; padding: 9px 8px; color: #1e9cd7; font-weight: 500;">$112.400</td>
+          <td style="text-align: right; padding: 9px 8px; color: #4ade80;">▲ 9%</td>
+        </tr>
+        <tr style="border-top: 0.5px solid rgba(255,255,255,0.05);">
+          <td style="padding: 9px 8px;"><span style="color:#b4855a;font-size:10px;">③</span> Nahuel R.</td>
+          <td style="padding: 6px 8px; text-align: center;"><svg width="90" height="20" viewBox="0 0 90 20"><polyline points="2,13 18,16 36,13 54,11 72,9 88,8" fill="none" stroke="#1e9cd7" stroke-width="1.5"/><circle cx="88" cy="8" r="2" fill="#1e9cd7"/></svg></td>
+          <td style="text-align: right; padding: 9px 8px;">14</td>
+          <td style="text-align: right; padding: 9px 8px;">$76.1k</td>
+          <td style="text-align: right; padding: 9px 8px; color: #1e9cd7; font-weight: 500;">$98.250</td>
+          <td style="text-align: right; padding: 9px 8px; color: #4ade80;">▲ 4%</td>
+        </tr>
+        <tr style="border-top: 0.5px solid rgba(255,255,255,0.05);">
+          <td style="padding: 9px 8px; color: #c5d0e0;">Sthefania R.</td>
+          <td style="padding: 6px 8px; text-align: center;"><svg width="90" height="20" viewBox="0 0 90 20"><polyline points="2,7 18,9 36,11 54,14 72,15 88,13" fill="none" stroke="#f87171" stroke-width="1.5"/><circle cx="88" cy="13" r="2" fill="#f87171"/></svg></td>
+          <td style="text-align: right; padding: 9px 8px;">12</td>
+          <td style="text-align: right; padding: 9px 8px;">$81.2k</td>
+          <td style="text-align: right; padding: 9px 8px;">$84.700</td>
+          <td style="text-align: right; padding: 9px 8px; color: #f87171;">▼ 6%</td>
+        </tr>
+        <tr style="border-top: 0.5px solid rgba(255,255,255,0.05);">
+          <td colspan="6" style="text-align: center; padding: 9px 8px; font-size: 11px; color: #6b7a90;">+ 8 vendedores · ver todos →</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background: #0a1830; border: 0.5px solid rgba(30,156,215,0.25); border-radius: 8px; padding: 16px; margin-bottom: 26px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 0.5px solid rgba(255,255,255,0.05);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(30,156,215,0.15); border: 0.5px solid #1e9cd7; display: flex; align-items: center; justify-content: center; font-weight: 500; color: #1e9cd7; font-size: 13px;">MS</div>
+        <div>
+          <p style="margin: 0; font-size: 13px; font-weight: 500; color: #fff;">Marlene Santander</p>
+          <p style="margin: 0; font-size: 10px; color: #8a98ad;">Las Heras · <span style="color: #f0993f;">① del mes</span></p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 4px;">
+        <span style="font-size: 10px; padding: 3px 8px; border: 0.5px solid rgba(255,255,255,0.1); color: #8a98ad; border-radius: 10px;">7d</span>
+        <span style="font-size: 10px; padding: 3px 8px; border: 0.5px solid rgba(255,255,255,0.1); color: #8a98ad; border-radius: 10px;">1m</span>
+        <span style="font-size: 10px; padding: 3px 8px; background: rgba(30,156,215,0.15); border: 0.5px solid #1e9cd7; color: #1e9cd7; border-radius: 10px; font-weight: 500;">6m</span>
+        <span style="font-size: 10px; padding: 3px 8px; border: 0.5px solid rgba(255,255,255,0.1); color: #8a98ad; border-radius: 10px;">año</span>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+      <div><p style="margin:0;font-size:9px;color:#8a98ad;text-transform:uppercase;letter-spacing:1px;">Comisión mes</p><p style="margin:2px 0 0;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:500;color:#1e9cd7;">$148.900</p></div>
+      <div><p style="margin:0;font-size:9px;color:#8a98ad;text-transform:uppercase;letter-spacing:1px;">Ventas</p><p style="margin:2px 0 0;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:500;color:#fff;">19</p></div>
+      <div><p style="margin:0;font-size:9px;color:#8a98ad;text-transform:uppercase;letter-spacing:1px;">Ticket prom.</p><p style="margin:2px 0 0;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:500;color:#fff;">$87.5k</p></div>
+    </div>
+    <svg viewBox="0 0 600 120" style="width: 100%; height: 110px;">
+      <defs><linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1e9cd7" stop-opacity="0.3"/><stop offset="100%" stop-color="#1e9cd7" stop-opacity="0"/></linearGradient></defs>
+      <line x1="40" y1="15" x2="40" y2="95" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+      <line x1="40" y1="95" x2="580" y2="95" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+      <text x="32" y="19" fill="#6b7a90" font-size="9" text-anchor="end">$150k</text>
+      <text x="32" y="68" fill="#6b7a90" font-size="9" text-anchor="end">$75k</text>
+      <polygon points="80,72 170,60 260,55 350,40 440,47 530,18 530,95 80,95" fill="url(#g2)"/>
+      <polyline points="80,72 170,60 260,55 350,40 440,47 530,18" fill="none" stroke="#1e9cd7" stroke-width="2.5"/>
+      <g fill="#1e9cd7"><circle cx="80" cy="72" r="3"/><circle cx="170" cy="60" r="3"/><circle cx="260" cy="55" r="3"/><circle cx="350" cy="40" r="3"/><circle cx="440" cy="47" r="3"/><circle cx="530" cy="18" r="4.5" stroke="#fff" stroke-width="1.5"/></g>
+      <text x="80" y="112" fill="#6b7a90" font-size="9" text-anchor="middle">Dic</text>
+      <text x="170" y="112" fill="#6b7a90" font-size="9" text-anchor="middle">Ene</text>
+      <text x="260" y="112" fill="#6b7a90" font-size="9" text-anchor="middle">Feb</text>
+      <text x="350" y="112" fill="#6b7a90" font-size="9" text-anchor="middle">Mar</text>
+      <text x="440" y="112" fill="#6b7a90" font-size="9" text-anchor="middle">Abr</text>
+      <text x="530" y="112" fill="#1e9cd7" font-size="9" font-weight="500" text-anchor="middle">May</text>
+    </svg>
+  </div>
+
+  <p style="margin: 0 0 8px; font-size: 9px; color: #4a5a72; text-transform: uppercase; letter-spacing: 2px;">— Análisis detallado (abajo de todo, fuera de presentación) —</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; opacity: 0.85;">
+    <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px;">
+      <p style="margin: 0 0 10px; font-size: 10px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;">Forma de pago</p>
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; height: 70px;">
+        <svg viewBox="0 0 100 100" style="width: 70px; height: 70px;">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="14"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#1e9cd7" stroke-width="14" stroke-dasharray="112 238" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#4ade80" stroke-width="14" stroke-dasharray="76 238" stroke-dashoffset="-112" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#f0993f" stroke-width="14" stroke-dasharray="50 238" stroke-dashoffset="-188" transform="rotate(-90 50 50)"/>
+        </svg>
+      </div>
+    </div>
+    <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px;">
+      <p style="margin: 0 0 10px; font-size: 10px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;">Equipos top</p>
+      <div id="v6EquiposTop" style="display: flex; flex-direction: column; gap: 7px;"></div>
+    </div>
+    <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px;">
+      <p style="margin: 0 0 10px; font-size: 10px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;">Planes top</p>
+      <div id="v6PlanesTop" style="display: flex; flex-direction: column; gap: 7px;"></div>
+    </div>
+        <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:#fff;">DGO Full</span><span style="color:#4ade80;">26</span></div><div style="background:rgba(255,255,255,0.04);height:5px;border-radius:3px;"><div style="background:#4ade80;height:100%;width:72%;border-radius:3px;"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:#fff;">DGO Básico</span><span style="color:#8a98ad;">17</span></div><div style="background:rgba(255,255,255,0.04);height:5px;border-radius:3px;"><div style="background:rgba(138,152,173,0.5);height:100%;width:47%;border-radius:3px;"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #0a1830; border: 0.5px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; opacity: 0.85;">
+    <p style="margin: 0 0 10px; font-size: 10px; color: #8a98ad; text-transform: uppercase; letter-spacing: 1.2px;"><i class="ti ti-map-pin" style="font-size: 12px; vertical-align: -1px;"></i> Ranking de localidades</p>
+    <div id="v6LocalidadesRanking" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;"></div>
+  </div>
+
+</div>
+</div>
+
         </div>
 
         <!-- PENDIENTES -->
@@ -2161,34 +2335,106 @@ async function cargarDashboard() {
     api("obtenerAnalisis", { mes })
   ]);
 
+  const resumen = resR.ok ? resR : {};
+  const analisis = (anR.ok && anR.analisis) ? anR.analisis : {};
+  actualizarDashboardV6(mes, resumen, analisis);
+
   if (resR.ok) {
-    $("dKAprob").textContent = fmtMoney(resR.totalComision);
-    $("dKVentas").textContent = resR.cantidadVentas || 0;
-    $("dKEquipoTop").textContent = resR.equipoTop || "—";
-  }
-
-  if (anR.ok && anR.analisis) {
-    const a = anR.analisis;
-    $("dKPend").textContent = fmtMoney(a.totalPendientes || 0);
-
-    // Pendientes en sidebar badge
-    if (resR.ok) {
-      const badge = $("adNumPend");
+    const badge = $("adNumPend");
+    if (badge) {
       if (resR.pendientesV > 0) {
         badge.textContent = resR.pendientesV;
         badge.classList.remove("hidden");
       } else badge.classList.add("hidden");
     }
-
-    // Podio
-    renderPodio(a.podio || []);
-
-    // Charts
-    renderChartVendedores(a.porVendedor || {});
-    renderChartEquipos(a.porEquipo || {});
-    renderChartPlanes(a.porPlan || {});
-    renderChartFormaPago(a.porFormaPago || {});
   }
+}
+
+function actualizarDashboardV6(mes, resumen, analisis) {
+  const porEquipo = analisis.porEquipo || {};
+  const porPlan = analisis.porPlan || {};
+  const porFormaPago = analisis.porFormaPago || {};
+  const totalComision = resumen.totalComision || analisis.totalAprobadas || 0;
+  const ventasMes = resumen.cantidadVentas || 0;
+  const pendientesCount = resumen.pendientesV || 0;
+  const totalPendientes = analisis.totalPendientes || 0;
+  const ticketPromedio = ventasMes ? totalComision / ventasMes : 0;
+
+  setText("v6PeriodoLabel", etiquetaMes(mes));
+  setText("v6TotalComision", fmtMoney(totalComision));
+  setText("v6ComisionTrend", totalPendientes ? `+ ${fmtMoney(totalPendientes)} pendiente` : "sin pendientes");
+  setText("v6VentasMes", ventasMes);
+  setText("v6VentasSub", ventasMes === 1 ? "venta" : "ventas");
+  setText("v6PendientesCount", pendientesCount);
+  setText("v6PendientesSub", totalPendientes ? `${fmtMoney(totalPendientes)} estimado` : "por revisar");
+  setText("v6TicketPromedio", fmtMoney(ticketPromedio));
+  setText("v6TicketSub", ventasMes ? "promedio aprobado" : "sin ventas aprobadas");
+
+  const formaTop = topEntry(porFormaPago);
+  const totalFormas = sumValues(porFormaPago);
+  setText("v6FormaPagoTop", formaTop ? formaTop[0] : "—");
+  setText("v6FormaPagoSub", formaTop && totalFormas ? `${Math.round((formaTop[1] / totalFormas) * 100)}% de las ventas` : "sin datos");
+
+  const productoTop = topEntry(porEquipo) || topEntry(porPlan);
+  setText("v6LocalidadTop", resumen.equipoTop || (productoTop ? productoTop[0] : "—"));
+  setText("v6LocalidadSub", productoTop ? `${productoTop[1]} ventas` : "sin datos");
+
+  renderMesChipsV6(mes);
+  renderV6Bars("v6EquiposTop", porEquipo, "#1e9cd7");
+  renderV6Bars("v6PlanesTop", porPlan, "#4ade80");
+  renderV6Ranking(analisis.podio || []);
+}
+
+function setText(id, value) {
+  const el = $(id);
+  if (el) el.textContent = value;
+}
+
+function etiquetaMes(mes) {
+  return mes ? mes.replace(/(\D+)(\d{4})$/, "$1 $2") : "Mes seleccionado";
+}
+
+function topEntry(obj) {
+  const entries = Object.entries(obj || {});
+  if (!entries.length) return null;
+  return entries.sort((a, b) => Number(b[1]?.monto ?? b[1]) - Number(a[1]?.monto ?? a[1]))[0];
+}
+
+function sumValues(obj) {
+  return Object.values(obj || {}).reduce((acc, v) => acc + Number((v?.monto ?? v) || 0), 0);
+}
+
+function renderMesChipsV6(mes) {
+  const cont = $("v6MesChips");
+  if (!cont) return;
+  const meses = state.meses.length ? state.meses.slice(0, 6) : [mes];
+  cont.innerHTML = meses.map(m => `<span style="font-size: 11px; padding: 4px 11px; ${m === mes ? "background: rgba(30,156,215,0.2); border: 0.5px solid #1e9cd7; color: #1e9cd7; font-weight: 500;" : "border: 0.5px solid rgba(255,255,255,0.12); color: #8a98ad;"} border-radius: 14px;">${etiquetaMes(m)}</span>`).join("");
+}
+
+function renderV6Bars(id, data, color) {
+  const cont = $(id);
+  if (!cont) return;
+  const entries = Object.entries(data || {}).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 3);
+  const max = entries.length ? Number(entries[0][1]) || 1 : 1;
+  if (!entries.length) {
+    cont.innerHTML = '<div class="empty">Sin datos</div>';
+    return;
+  }
+  cont.innerHTML = entries.map(([label, value]) => {
+    const pct = Math.max(8, Math.round((Number(value) / max) * 100));
+    return `<div><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:#fff;">${label}</span><span style="color:${color};">${value}</span></div><div style="background:rgba(255,255,255,0.04);height:5px;border-radius:3px;"><div style="background:${color};height:100%;width:${pct}%;border-radius:3px;"></div></div></div>`;
+  }).join("");
+}
+
+function renderV6Ranking(podio) {
+  const cont = $("v6LocalidadesRanking");
+  if (!cont) return;
+  if (!podio.length) {
+    cont.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin datos</div>';
+    return;
+  }
+  const medals = ["1", "2", "3"];
+  cont.innerHTML = podio.slice(0, 3).map((p, i) => `<div style="background:${i === 0 ? "rgba(30,156,215,0.06)" : "#050d1a"};border:0.5px solid ${i === 0 ? "rgba(30,156,215,0.2)" : "rgba(255,255,255,0.06)"};border-radius:6px;padding:10px;"><span style="font-size:11px;color:#fff;font-weight:500;"><span style="color:#f0993f;">${medals[i]}</span> ${p.vendedor}</span><p style="margin:4px 0 0;font-family:'Barlow Condensed',sans-serif;font-size:15px;color:${i === 0 ? "#1e9cd7" : "#fff"};font-weight:500;">${fmtMoney(p.monto)}</p></div>`).join("");
 }
 
 function renderPodio(podio) {
