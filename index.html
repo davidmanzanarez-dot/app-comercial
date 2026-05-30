@@ -900,10 +900,18 @@ body.presentacion .hero-value{font-size:54px}
         <!-- VENTAS -->
         <div id="aVentas" class="a-page hidden">
           <div class="page-title"><span class="accent-bar"></span><span>Ventas del mes</span></div>
-          <div class="mes-selector">
+          <div class="mes-selector" style="flex-wrap:wrap">
             <select id="avMesSel"></select>
-            <input type="text" id="avFiltro" placeholder="Buscar vendedor, cliente o equipo..." style="flex:2;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text)">
-            <button class="btn btn-secondary btn-sm" onclick="cargarVentasAdmin()">Buscar</button>
+            <select id="aVentasEstadoFil" onchange="filtrarYRenderVentas()" style="flex:1;min-width:140px;padding:8px 10px;font-size:13px">
+              <option value="">Todos los estados</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Aprobada">Aprobada</option>
+              <option value="Rechazada">Rechazada</option>
+              <option value="Anulada">Anulada</option>
+            </select>
+            <select id="aVentasVendedorFil" onchange="filtrarYRenderVentas()" style="flex:1;min-width:140px;padding:8px 10px;font-size:13px">
+              <option value="">Todos los vendedores</option>
+            </select>
           </div>
           <div id="aListaVentas">
             <div class="loader"><div class="spinner"></div></div>
@@ -2178,22 +2186,43 @@ async function rechazarVenta(fila, mes) {
 // ============================================================
 async function cargarVentasAdmin() {
   const mes = $("avMesSel").value || state.mesActualNombre;
-  const filtro = $("avFiltro").value.trim().toLowerCase();
   const cont = $("aListaVentas");
   cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
+  // Reiniciar filtros al cambiar el mes
+  const estFil = $("aVentasEstadoFil");
+  const vendFil = $("aVentasVendedorFil");
+  if (estFil) estFil.value = "";
+  if (vendFil) vendFil.innerHTML = '<option value="">Todos los vendedores</option>';
+
   const r = await api("obtenerVentas", { mes });
   if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
-  let ventas = r.ventas || [];
 
-  if (filtro) {
-    ventas = ventas.filter(v => {
-      const d = v.datos;
-      return (d[3] || "").toString().toLowerCase().includes(filtro)
-          || (d[4] || "").toString().toLowerCase().includes(filtro)
-          || (d[5] || "").toString().toLowerCase().includes(filtro);
+  state.ventasAdminCache = r.ventas || [];
+
+  // Poblar filtro de vendedores con los del mes cargado
+  if (vendFil) {
+    const vendSet = new Set(state.ventasAdminCache.map(v => String(v.datos[3] || "")).filter(Boolean));
+    [...vendSet].sort().forEach(nombre => {
+      const o = document.createElement("option");
+      o.value = nombre;
+      o.textContent = nombre;
+      vendFil.appendChild(o);
     });
   }
+
+  filtrarYRenderVentas();
+}
+
+function filtrarYRenderVentas() {
+  const mes = $("avMesSel").value || state.mesActualNombre;
+  const estadoFil = $("aVentasEstadoFil") ? $("aVentasEstadoFil").value : "";
+  const vendedorFil = $("aVentasVendedorFil") ? $("aVentasVendedorFil").value : "";
+  const cont = $("aListaVentas");
+
+  let ventas = state.ventasAdminCache || [];
+  if (estadoFil) ventas = ventas.filter(v => String(v.datos[13] || "").trim() === estadoFil);
+  if (vendedorFil) ventas = ventas.filter(v => String(v.datos[3] || "") === vendedorFil);
 
   if (!ventas.length) {
     cont.innerHTML = '<div class="empty"><span class="icon">📭</span>Sin resultados</div>';
