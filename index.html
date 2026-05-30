@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{
   --bg:#f7f6f3;
@@ -425,14 +424,6 @@ tbody tr:hover{background:var(--accent-soft)}
 .tipo-venta-card .tv-icon{font-size:26px;display:block;margin-bottom:6px}
 .tipo-venta-card .tv-label{font-size:13px;color:var(--ink)}
 
-/* ============================================================
-   PODIO (legacy, por compatibilidad)
-   ============================================================ */
-.podio{display:flex;gap:10px;justify-content:center;align-items:flex-end;margin:16px 0}
-.podio-pos{text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);flex:1}
-.podio-num{font-family:var(--serif);font-size:22px;color:var(--accent)}
-.podio-nombre{font-size:12px;margin-top:4px}
-.podio-monto{font-family:var(--serif);font-size:14px;color:var(--ink);margin-top:2px}
 
 /* ============================================================
    MODO PRESENTACIÓN
@@ -444,6 +435,41 @@ body.presentacion .mes-selector,
 body.presentacion .analisis-detallado{display:none !important}
 body.presentacion .content{padding:24px 32px;max-width:none}
 body.presentacion .hero-value{font-size:54px}
+
+/* ============================================================
+   VENTA CARD
+   ============================================================ */
+.venta-card{
+  background:#ffffff;
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:14px;
+  margin-bottom:10px;
+}
+.vc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:10px}
+.vc-equipo{font-size:14px;font-weight:500;color:var(--ink)}
+.vc-fecha{font-size:11px;color:var(--text-mute);margin-top:2px}
+.vc-meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.vc-link{font-size:12px;color:var(--text-dim);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vc-link a{color:var(--accent);text-decoration:none}
+.vc-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px;flex-wrap:wrap}
+.vc-cuota{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-mute)}
+.vc-comision{font-family:var(--serif);font-size:22px;color:var(--ink)}
+.vc-actions{display:flex;gap:8px;flex-wrap:wrap}
+.vc-motivo{margin-top:8px;padding:8px 10px;background:var(--err-soft);border-radius:var(--r-sm);font-size:12px;color:var(--err)}
+.cp-line{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}
+.cp-title{font-size:10px;text-transform:uppercase;letter-spacing:0.13em;color:var(--text-mute)}
+.cp-total{font-family:var(--serif);font-size:28px;color:var(--accent);margin:4px 0}
+.cp-breakdown{font-size:12px;color:var(--text-dim);margin-top:4px}
+.hint{font-size:11px;color:var(--text-mute);display:block;margin-top:4px}
+.text-accent{color:var(--accent);text-decoration:none;font-size:12px}
+
+/* TOASTS */
+.toast-wrap{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:6px;pointer-events:none;min-width:220px;max-width:360px}
+.toast{padding:10px 18px;border-radius:var(--r-sm);font-size:13px;background:var(--ink);color:#fff;box-shadow:var(--shadow-2);text-align:center;animation:fadeIn .2s}
+.toast.ok{background:var(--ok)}
+.toast.err{background:var(--err)}
+.toast.info{background:var(--accent)}
 
 </style>
 </head>
@@ -692,6 +718,9 @@ body.presentacion .hero-value{font-size:54px}
     </button>
     <button data-nav="vMisRegistros">
       <span class="icon">📋</span>Registros
+    </button>
+    <button onclick="cerrarSesion()">
+      <span class="icon">🚪</span>Salir
     </button>
   </div>
 </div>
@@ -951,7 +980,6 @@ const state = {
   meses: [],
   mesActual: "",
   pinBuffer: "",
-  charts: {},
   mesActualNombre: "",
   tipoVentaActual: "Equipo"  // tipo seleccionado en el form (Equipo o Plan)
 };
@@ -966,17 +994,6 @@ async function api(accion, datos = {}) {
       method: "POST",
       body: JSON.stringify(body)
     });
-    const json = await resp.json();
-    return json;
-  } catch (e) {
-    return { ok: false, error: "Error de red: " + e.message };
-  }
-}
-
-async function apiGet(accion, datos = {}) {
-  try {
-    const params = new URLSearchParams(Object.assign({ accion }, datos));
-    const resp = await fetch(WEB_APP_URL + "?" + params.toString());
     const json = await resp.json();
     return json;
   } catch (e) {
@@ -1012,13 +1029,6 @@ function ISOaDDMMYYYY(iso) {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
   return d + "/" + m + "/" + y;
-}
-function obtenerMesDeFecha(iso) {
-  if (!iso) return nombreMesActual();
-  const [y, m] = iso.split("-").map(Number);
-  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
-                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  return meses[m - 1] + y;
 }
 function nombreMesActual() {
   const d = new Date();
@@ -1513,10 +1523,10 @@ async function cargarMisRegistros() {
     }
 
     let acciones = "";
-    if (principal.estado === "Rechazada") {
+    if (principal.estado === "Rechazada" || principal.estado === "Pendiente") {
       acciones = `
-        <button class="btn btn-secondary btn-sm" onclick='editarVentaModal(${JSON.stringify(principal).replace(/'/g, "&apos;")}, "${mes}")'>Editar</button>
-        <button class="btn btn-danger btn-sm" onclick='eliminarVentaConfirm(${principal.fila}, "${mes}")'>Eliminar</button>
+        <button class="btn btn-secondary btn-sm" onclick='editarRegistroVendedor(${JSON.stringify(principal).replace(/'/g, "&apos;")}, "${mes}")'>Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="borrarRegistroVendedor(${principal.fila},'${mes}')">Borrar</button>
       `;
     }
 
@@ -1631,24 +1641,6 @@ async function enviarEdicion(fila, mes) {
   } else {
     toast("Error: " + (r.error || ""), "err");
   }
-}
-
-function eliminarVentaConfirm(fila, mes) {
-  abrirModal({
-    titulo: "Eliminar venta",
-    contenido: "<p>¿Confirmás que querés eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.</p>",
-    acciones: [
-      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: "Eliminar", clase: "btn-danger", accion: async () => {
-        const r = await api("eliminarVenta", { fila, mes });
-        cerrarModal();
-        if (r.ok) {
-          toast("Venta eliminada", "ok");
-          cargarMisRegistros();
-        } else toast("Error: " + (r.error || ""), "err");
-      }}
-    ]
-  });
 }
 
 // ============================================================
@@ -1818,11 +1810,6 @@ async function cargarDashboard() {
     $("dLocalidadSub").textContent = "sin datos";
   }
 
-  // Badge pendientes en sidebar
-  const badge = $("adNumPend");
-  if (badge) {
-    const cantPend = (a.podio ? 0 : 0); // se actualiza abajo con resumen si hace falta
-  }
 
   // --- Tabla evolución del equipo ---
   // Armar array ordenado por comisión desc
@@ -2104,10 +2091,10 @@ async function cargarPendientes() {
     return;
   }
 
+  state.pendientesAdminRows = r.ventas;
   let html = "";
-  r.ventas.forEach(v => {
+  r.ventas.forEach((v, idx) => {
     const d = v.datos;
-    // d = [fechaVenta, fechaCarga, localidad, vendedor, cliente, equipo, precio, formaPago, nroCuota, comCuota, comTotal, tipoCom, valorCom, estado, fechaApr, motivo, link, idVenta]
     html += `
       <div class="venta-card pendiente">
         <div class="vc-top">
@@ -2130,6 +2117,8 @@ async function cargarPendientes() {
             <div class="vc-comision">${fmtMoney(d[10])}</div>
           </div>
           <div class="vc-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'pendientes')">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','pendientes')">Borrar</button>
             <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${mes}")'>Rechazar</button>
             <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${mes}")'>Aprobar</button>
           </div>
@@ -2211,14 +2200,16 @@ async function cargarVentasAdmin() {
     return;
   }
 
+  state.ventasAdminRows = ventas;
+
   // En escritorio: tabla. En mobile: cards.
   if (window.innerWidth >= 1024) {
-    let html = `<div class="tabla-wrap"><table class="tabla">
+    let html = `<div class="tabla-wrap" style="overflow-x:auto"><table class="tabla">
       <thead><tr>
         <th>Fecha</th><th>Vendedor</th><th>Cliente</th><th>Producto</th>
-        <th>Cuota</th><th>Forma pago</th><th>Comisión</th><th>Estado</th><th>Link</th>
+        <th>Cuota</th><th>Forma pago</th><th>Comisión</th><th>Estado</th><th>Link</th><th>Acciones</th>
       </tr></thead><tbody>`;
-    ventas.forEach(v => {
+    ventas.forEach((v, idx) => {
       const d = v.datos;
       const estado = String(d[13] || "").trim();
       html += `<tr>
@@ -2231,13 +2222,17 @@ async function cargarVentasAdmin() {
         <td><strong>${fmtMoney(d[9])}</strong></td>
         <td><span class="estado-badge ${estado.toLowerCase()}">${estado}</span></td>
         <td>${d[16] ? '<a href="' + d[16] + '" target="_blank">🔗</a>' : "—"}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas')">Borrar</button>
+        </td>
       </tr>`;
     });
     html += "</tbody></table></div>";
     cont.innerHTML = html;
   } else {
     let html = "";
-    ventas.forEach(v => {
+    ventas.forEach((v, idx) => {
       const d = v.datos;
       const estado = String(d[13] || "").trim();
       html += `<div class="venta-card ${estado.toLowerCase()}">
@@ -2255,6 +2250,10 @@ async function cargarVentasAdmin() {
         <div class="vc-foot">
           <div class="vc-comision">${fmtMoney(d[9])}</div>
           ${d[16] ? '<a href="' + d[16] + '" target="_blank" class="text-accent">Ver ticket 🔗</a>' : ""}
+        </div>
+        <div class="vc-actions" style="margin-top:8px;justify-content:flex-end">
+          <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas')">Borrar</button>
         </div>
       </div>`;
     });
@@ -2469,6 +2468,153 @@ async function descargarCertificacion() {
   URL.revokeObjectURL(url);
 
   toast(`Certificación lista. ${r.cantidadCuotas} cuotas · Total: ${fmtMoney(r.totalGeneral)}`, "ok", 5000);
+}
+
+// ============================================================
+// ADMIN - ELIMINAR / EDITAR VENTAS
+// ============================================================
+function ddmmyyyyToISO(s) {
+  if (!s) return "";
+  const p = String(s).split("/");
+  if (p.length !== 3) return "";
+  return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
+}
+
+async function eliminarVentaAdmin(fila, mes, fuente) {
+  if (!confirm("¿Eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.")) return;
+  const r = await api("eliminarVenta", { fila, mes });
+  if (r.ok) {
+    toast("Venta eliminada", "ok");
+    if (fuente === "pendientes") cargarPendientes();
+    else cargarVentasAdmin();
+  } else {
+    toast("Error: " + (r.error || ""), "err");
+  }
+}
+
+async function editarVentaAdmin(idx, fuente) {
+  const rows = fuente === "pendientes" ? state.pendientesAdminRows : state.ventasAdminRows;
+  if (!rows || !rows[idx]) return toast("No se encontraron datos de la venta", "err");
+  const item = rows[idx];
+  const d = item.datos;
+  const mes = fuente === "pendientes"
+    ? ($("apMesSel").value || state.mesActualNombre)
+    : ($("avMesSel").value || state.mesActualNombre);
+
+  const nombreBase = String(d[5]).split(" · ")[0].trim();
+  const escenarioGuardado = String(d[5]).includes(" · ") ? String(d[5]).split(" · ").slice(1).join(" · ") : "";
+  const eq = state.equipos.find(e => e.nombre === nombreBase);
+
+  const optsLoc = state.localidades.map(l =>
+    `<option value="${escapeHtml(l.nombre)}" ${l.nombre === d[2] ? "selected" : ""}>${escapeHtml(l.nombre)}</option>`
+  ).join("");
+  const optsEq = state.equipos.map(e =>
+    `<option value="${e.id}" ${eq && String(e.id) === String(eq.id) ? "selected" : ""}>${escapeHtml(e.nombre)}</option>`
+  ).join("");
+  const fpOpts = ["Contado","2 cuotas","3 cuotas"].map(fp =>
+    `<option value="${fp}" ${d[7] === fp ? "selected" : ""}>${fp}</option>`
+  ).join("");
+  const escHtml = escenarioGuardado
+    ? `<div class="form-group"><label>Escenario</label><input type="text" id="eaEscenario" value="${escapeHtml(escenarioGuardado)}"><span class="hint">Etiqueta del escenario de comisión</span></div>`
+    : `<input type="hidden" id="eaEscenario" value="">`;
+
+  abrirModal({
+    titulo: "Editar venta",
+    contenido: `
+      <div class="form-group">
+        <label>Vendedor</label>
+        <input type="text" id="eaVendedor" value="${escapeHtml(String(d[3] || ""))}" style="background:var(--surface-2)" readonly>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha venta</label>
+          <input type="date" id="eaFecha" value="${ddmmyyyyToISO(d[0])}">
+        </div>
+        <div class="form-group">
+          <label>Forma de pago</label>
+          <select id="eaFormaPago">${fpOpts}</select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Localidad</label>
+        <select id="eaLocalidad">${optsLoc}</select>
+      </div>
+      <div class="form-group">
+        <label>N° Cliente</label>
+        <input type="text" id="eaCliente" value="${escapeHtml(String(d[4] || ""))}">
+      </div>
+      <div class="form-group">
+        <label>Producto</label>
+        <select id="eaEquipo">${optsEq}</select>
+      </div>
+      ${escHtml}
+      <div class="form-group">
+        <label>Precio venta <span style="font-size:10px;color:var(--text-mute)">(admin puede editar)</span></label>
+        <input type="number" id="eaPrecio" value="${d[6]}">
+      </div>
+      <div class="form-group">
+        <label>Link ticket</label>
+        <input type="url" id="eaLink" value="${escapeHtml(String(d[16] || ""))}">
+      </div>
+    `,
+    acciones: [
+      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
+      { txt: "Guardar", clase: "btn-primary", accion: async () => {
+        const link = $("eaLink").value.trim();
+        const fechaISO = $("eaFecha").value;
+        const eqId = $("eaEquipo").value;
+        if (!link) return toast("El link es obligatorio", "err");
+        if (!fechaISO) return toast("Falta la fecha", "err");
+        const selectedEq = state.equipos.find(e => String(e.id) === String(eqId));
+        const escId = $("eaEscenario").value.trim();
+        if (selectedEq && selectedEq.comisionesMultiples && !escId) {
+          return toast("Falta el escenario para este producto", "err");
+        }
+        const datos = {
+          vendedor: String(d[3] || ""),
+          fechaVenta: ISOaDDMMYYYY(fechaISO),
+          localidad: $("eaLocalidad").value,
+          nroCliente: $("eaCliente").value.trim(),
+          equipoId: eqId,
+          formaPago: $("eaFormaPago").value,
+          link,
+          precioVenta: Number($("eaPrecio").value) || 0,
+          rol: "admin",
+          fila: item.fila,
+          mes
+        };
+        if (escId) datos.escenarioId = escId;
+        cerrarModal();
+        toast("Guardando...", "info");
+        const r = await api("editarVenta", datos);
+        if (r.ok) {
+          toast("Venta actualizada", "ok");
+          if (fuente === "pendientes") cargarPendientes();
+          else cargarVentasAdmin();
+        } else {
+          toast("Error: " + (r.error || ""), "err");
+        }
+      }}
+    ]
+  });
+}
+
+// ============================================================
+// VENDEDOR - EDITAR / BORRAR PROPIOS REGISTROS
+// ============================================================
+function editarRegistroVendedor(venta, mes) {
+  editarVentaModal(venta, mes);
+}
+
+async function borrarRegistroVendedor(fila, mes) {
+  if (!confirm("¿Eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.")) return;
+  const r = await api("eliminarVenta", { fila, mes });
+  if (r.ok) {
+    toast("Venta eliminada", "ok");
+    cargarMisRegistros();
+  } else {
+    toast("Error: " + (r.error || ""), "err");
+  }
 }
 
 // ============================================================
