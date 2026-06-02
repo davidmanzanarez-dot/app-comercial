@@ -135,7 +135,7 @@ body{
 }
 .sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
 .sidebar-header .tagline{font-family:var(--sans);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-mute);margin-top:2px}
-.sidebar nav{padding:12px 0;flex:1}
+.sidebar nav{padding:12px 0;flex:1;overflow-y:auto}
 .sidebar nav button{
   width:100%;padding:11px 20px;text-align:left;font-family:var(--sans);
   font-size:13px;letter-spacing:0.02em;color:var(--ink-2);
@@ -144,7 +144,7 @@ body{
 }
 .sidebar nav button:hover{background:var(--accent-soft)}
 .sidebar nav button.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:500}
-.sidebar-foot{padding:14px 20px;border-top:1px solid var(--border)}
+.sidebar-foot{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0}
 .admin-main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 /* En mobile, sidebar oculto */
@@ -363,12 +363,33 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 /* ============================================================
    LOGIN
    ============================================================ */
-.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:6px}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:34px 32px;max-width:380px;width:100%;box-shadow:var(--shadow-2)}
-.login-hero{text-align:center;margin-bottom:14px}
-.login-hero .wordmark{font-size:34px;display:block}
-.login-hero .tagline{font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:var(--text-mute);margin-top:4px}
-.login-sub{text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:var(--text-mute);margin-bottom:6px}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+.login-card{
+  display:flex;flex-direction:row;width:100%;max-width:680px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-2);overflow:hidden;
+}
+.login-brand-side{
+  background:var(--accent);color:#fff;padding:48px 36px;
+  display:flex;flex-direction:column;justify-content:center;
+  flex:0 0 240px;
+}
+.login-wm{font-family:var(--serif);font-size:26px;letter-spacing:-0.01em}
+.login-wm .ss{color:rgba(255,255,255,0.5)}
+.login-wm .co{color:#fff}
+.login-brand-tag{font-size:9px;text-transform:uppercase;letter-spacing:0.22em;color:rgba(255,255,255,0.5);margin-top:6px}
+.login-brand-dmz{margin-top:32px}
+.login-brand-dmz .dmz-line{background:rgba(255,255,255,0.2)}
+.login-brand-dmz .dmz-txt{color:rgba(255,255,255,0.3);font-size:12px}
+.login-form-side{padding:40px 36px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.login-form-title{font-family:var(--serif);font-size:19px;color:var(--ink);margin-bottom:20px}
+.login-error{color:var(--err);background:var(--err-soft);border:1px solid #e6c4c4;border-radius:var(--r-sm);padding:9px 13px;font-size:13px;margin-bottom:12px}
+@media(max-width:600px){
+  .login-card{flex-direction:column}
+  .login-brand-side{flex:none;padding:28px 24px;text-align:center;align-items:center}
+  .login-brand-dmz{margin-top:18px;width:100%}
+  .login-form-side{padding:28px 24px}
+}
 
 /* Firma DMZ */
 .dmz-sig{display:flex;align-items:center;gap:10px;justify-content:center;margin:16px 0 24px}
@@ -480,6 +501,10 @@ body.presentacion .hero-value{font-size:54px}
 .rol-badge.gerente{background:var(--ok-soft);color:var(--ok)}
 .rol-badge.desarrollador{background:var(--err-soft);color:var(--err)}
 
+/* sidebar user info */
+.sidebar-user-info{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sidebar-user-name{font-size:12px;font-weight:500;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+
 </style>
 </head>
 <body>
@@ -489,48 +514,31 @@ body.presentacion .hero-value{font-size:54px}
      ============================================================ -->
 <div id="screenLogin" class="app">
   <div class="login-wrap">
-    <div class="login-hero">
-      <div class="wordmark">
-        <span class="ss">SS</span> <span class="co">COMERCIAL</span>
-      </div>
-      <div class="tagline">Gestión de comisiones</div>
-      <!-- Firma DMZ V7 -->
-      <div class="dmz-sig">
-        <span class="dmz-line"></span>
-        <span class="dmz-txt">DMZ</span>
-        <span class="dmz-line"></span>
-      </div>
-    </div>
-
     <div class="login-card">
-      <div class="form-group">
-        <label>Vendedor</label>
-        <select id="loginVendedor">
-          <option value="">-- Seleccionar --</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>PIN</label>
-        <div class="pin-display" id="pinDisplay">
-          <div class="pin-dot"></div><div class="pin-dot"></div>
-          <div class="pin-dot"></div><div class="pin-dot"></div>
-        </div>
-        <div class="keypad" id="keypad">
-          <button data-k="1">1</button>
-          <button data-k="2">2</button>
-          <button data-k="3">3</button>
-          <button data-k="4">4</button>
-          <button data-k="5">5</button>
-          <button data-k="6">6</button>
-          <button data-k="7">7</button>
-          <button data-k="8">8</button>
-          <button data-k="9">9</button>
-          <button class="del" data-k="del">←</button>
-          <button data-k="0">0</button>
-          <button class="del" data-k="clear">C</button>
+      <div class="login-brand-side">
+        <div class="login-wm"><span class="ss">SS</span> <span class="co">COMERCIAL</span></div>
+        <div class="login-brand-tag">Gestión de comisiones</div>
+        <div class="dmz-sig login-brand-dmz">
+          <span class="dmz-line"></span>
+          <span class="dmz-txt">DMZ</span>
+          <span class="dmz-line"></span>
         </div>
       </div>
-      <button id="btnLogin" class="btn btn-primary btn-block mt">Ingresar</button>
+      <div class="login-form-side">
+        <p class="login-form-title">Iniciar sesión</p>
+        <div class="form-group">
+          <label for="loginVendedor">Usuario</label>
+          <select id="loginVendedor">
+            <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="loginPin">PIN</label>
+          <input type="password" id="loginPin" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••">
+        </div>
+        <div id="loginError" class="login-error hidden"></div>
+        <button id="btnLogin" class="btn btn-primary btn-block" style="margin-top:4px">Ingresar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -746,6 +754,10 @@ body.presentacion .hero-value{font-size:54px}
           <span class="ss">SS</span> <span class="co">COMERCIAL</span>
         </div>
         <div class="tagline" style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--text-mute);margin-top:4px">PANEL ADMIN</div>
+        <div class="sidebar-user-info hidden" id="adminSidebarUser">
+          <span class="sidebar-user-name" id="adminSidebarNombre"></span>
+          <span class="rol-badge" id="adminSidebarRol"></span>
+        </div>
       </div>
       <nav>
         <button data-anav="aDashboard" class="active">📊 Dashboard</button>
@@ -772,7 +784,7 @@ body.presentacion .hero-value{font-size:54px}
           <span class="ss">SS</span> <span class="co">COMERCIAL</span>
         </div>
         <div class="flex-gap">
-          <span class="header-user">ADMIN</span>
+          <span class="header-user" id="adminHeaderUser"></span>
           <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
         </div>
       </div>
@@ -1112,7 +1124,9 @@ async function initLogin() {
 }
 
 function updatePinDisplay() {
-  const dots = $("pinDisplay").querySelectorAll(".pin-dot");
+  const pd = $("pinDisplay");
+  if (!pd) return;
+  const dots = pd.querySelectorAll(".pin-dot");
   dots.forEach((d, i) => {
     if (i < state.pinBuffer.length) {
       d.classList.add("filled");
@@ -1125,6 +1139,7 @@ function updatePinDisplay() {
 }
 
 function setupKeypad() {
+  if (!$("keypad")) return;
   $("keypad").addEventListener("click", (e) => {
     const btn = e.target.closest("button");
     if (!btn) return;
@@ -1142,11 +1157,19 @@ function setupKeypad() {
 
 async function hacerLogin() {
   const nombre = $("loginVendedor").value;
-  const pin = state.pinBuffer;
+  const pinInput = $("loginPin");
+  const pin = (pinInput ? pinInput.value : state.pinBuffer).trim();
+  const errEl = $("loginError");
 
-  if (!nombre) { toast("Seleccioná un usuario", "err"); return; }
-  if (!pin) { toast("Ingresá el PIN", "err"); return; }
-  if (pin.length !== 4) { toast("El PIN debe tener 4 dígitos", "err"); return; }
+  const showLoginError = (msg) => {
+    if (errEl) { errEl.textContent = msg; errEl.classList.remove("hidden"); }
+    else toast(msg, "err");
+  };
+  if (errEl) errEl.classList.add("hidden");
+
+  if (!nombre) { showLoginError("Seleccioná un usuario"); return; }
+  if (!pin)    { showLoginError("Ingresá el PIN"); return; }
+  if (pin.length < 4) { showLoginError("El PIN debe tener al menos 4 dígitos"); return; }
 
   $("btnLogin").disabled = true;
   $("btnLogin").textContent = "Verificando...";
@@ -1159,8 +1182,8 @@ async function hacerLogin() {
   if (r.ok) {
     // state.usuario contiene: { ok, rol, zonas, id, nombre, localidad }
     state.usuario = r;
-    state.pinBuffer = "";
-    updatePinDisplay();
+    if (pinInput) pinInput.value = "";
+    if (errEl) errEl.classList.add("hidden");
 
     const esAdmin = r.rol === "supervisor" || r.rol === "gerente" || r.rol === "desarrollador";
     if (esAdmin) {
@@ -1173,9 +1196,8 @@ async function hacerLogin() {
       initVendedor();
     }
   } else {
-    toast(r.error || "Error de login", "err");
-    state.pinBuffer = "";
-    updatePinDisplay();
+    showLoginError(r.error || "Error de login");
+    if (pinInput) pinInput.value = "";
   }
 }
 
@@ -1187,10 +1209,10 @@ function mostrarPantalla(id) {
 
 function cerrarSesion() {
   state.usuario = null;
-  state.pinBuffer = "";
-  updatePinDisplay();
   mostrarPantalla("screenLogin");
   $("loginVendedor").value = "";
+  if ($("loginPin"))    $("loginPin").value = "";
+  if ($("loginError"))  $("loginError").classList.add("hidden");
 }
 
 // ============================================================
@@ -1745,6 +1767,18 @@ async function initAdmin() {
   llenarSelectMeses("avMesSel", state.mesActualNombre);
   llenarSelectMeses("acMesSel", state.mesActualNombre);
 
+  // Nombre y rol en header mobile y sidebar desktop
+  const headerUser = $("adminHeaderUser");
+  if (headerUser) headerUser.textContent = state.usuario.nombre.toUpperCase();
+  const sidebarUser = $("adminSidebarUser");
+  if (sidebarUser) {
+    $("adminSidebarNombre").textContent = state.usuario.nombre;
+    const rolEl = $("adminSidebarRol");
+    rolEl.textContent = state.usuario.rol;
+    rolEl.className = "rol-badge " + state.usuario.rol;
+    sidebarUser.classList.remove("hidden");
+  }
+
   setupAdminLayout();
   setupBottomNav();
   irAdmin("aDashboard");
@@ -1815,7 +1849,7 @@ function varChip(v) {
 
 async function cargarDashboard() {
   const mes = $("aMesSel").value || state.mesActualNombre;
-  const anR = await api("obtenerAnalisis", { mes });
+  const anR = await api("obtenerAnalisis", { mes, zonas: state.usuario ? state.usuario.zonas : [] });
 
   if (!anR.ok || !anR.analisis) {
     toast("Error cargando análisis", "err");
@@ -1846,6 +1880,14 @@ async function cargarDashboard() {
   dvv.className = "var-inline " + vv.inline;
   dvv.textContent = vv.txt;
   $("dPend").textContent = fmtMoney(a.totalPendientes || 0);
+
+  // Badge pendientes en sidebar/bottomnav
+  const numPendDB = $("adNumPend");
+  if (numPendDB) {
+    const cnt = a.pendientesCount || 0;
+    numPendDB.textContent = cnt;
+    numPendDB.classList.toggle("hidden", cnt === 0);
+  }
 
   // --- KPIs mini ---
   $("dTicket").textContent = fmtMoney(a.ticketPromedio);
@@ -2135,7 +2177,13 @@ async function cargarPendientes() {
   const cont = $("aListaPendientes");
   cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
-  const r = await api("obtenerPendientes", { mes });
+  const r = await api("obtenerPendientes", { mes, zonas: state.usuario ? state.usuario.zonas : [] });
+  const numPendLP = $("adNumPend");
+  if (numPendLP) {
+    const cnt = r.ok && r.ventas ? r.ventas.length : 0;
+    numPendLP.textContent = cnt;
+    numPendLP.classList.toggle("hidden", cnt === 0);
+  }
   if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
   if (!r.ventas.length) {
     cont.innerHTML = '<div class="empty"><span class="icon">✅</span>Sin pendientes</div>';
@@ -2238,7 +2286,7 @@ async function cargarVentasAdmin() {
   if (estFil) estFil.value = "";
   if (vendFil) vendFil.innerHTML = '<option value="">Todos los vendedores</option>';
 
-  const r = await api("obtenerVentas", { mes });
+  const r = await api("obtenerVentas", { mes, zonas: state.usuario ? state.usuario.zonas : [] });
   if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
 
   state.ventasAdminCache = r.ventas || [];
@@ -2868,6 +2916,8 @@ async function borrarRegistroVendedor(fila, mes) {
 document.addEventListener("DOMContentLoaded", async () => {
   setupKeypad();
   $("btnLogin").onclick = hacerLogin;
+  const pinInput = $("loginPin");
+  if (pinInput) pinInput.addEventListener("keydown", e => { if (e.key === "Enter") hacerLogin(); });
   await initLogin();
 });
 </script>
