@@ -502,7 +502,7 @@ body.presentacion .hero-value{font-size:54px}
 .rol-badge.desarrollador{background:var(--err-soft);color:var(--err)}
 
 /* sidebar user info */
-.sidebar-user-info{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden}
+.sidebar-user-info{padding-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden}
 .sidebar-user-name{font-size:11px;font-weight:500;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 
 </style>
@@ -754,10 +754,6 @@ body.presentacion .hero-value{font-size:54px}
           <span class="ss">SS</span> <span class="co">COMERCIAL</span>
         </div>
         <div class="tagline">PANEL ADMIN</div>
-        <div class="sidebar-user-info hidden" id="adminSidebarUser">
-          <span class="sidebar-user-name" id="adminSidebarNombre"></span>
-          <span class="rol-badge" id="adminSidebarRol"></span>
-        </div>
       </div>
       <nav>
         <button data-anav="aDashboard" class="active">📊 Dashboard</button>
@@ -768,6 +764,10 @@ body.presentacion .hero-value{font-size:54px}
         <button data-anav="aCertificacion">📥 Certificación</button>
       </nav>
       <div class="sidebar-foot">
+        <div class="sidebar-user-info hidden" id="adminSidebarUser">
+          <span class="sidebar-user-name" id="adminSidebarNombre"></span>
+          <span class="rol-badge" id="adminSidebarRol"></span>
+        </div>
         <!-- Firma DMZ V7 en sidebar -->
         <div class="dmz-sig sidebar">
           <span class="dmz-line"></span>
