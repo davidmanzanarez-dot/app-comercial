@@ -131,13 +131,13 @@ body{
 .admin-layout{display:flex;min-height:100vh}
 .sidebar{
   width:212px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;
 }
 .sidebar-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .sidebar-header .tagline{font-family:var(--sans);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-mute);margin-top:2px}
 .sidebar nav{padding:8px 0;flex:1 1 auto;min-height:0;overflow-y:visible}
 .sidebar nav button{
-  width:100%;padding:9px 20px;text-align:left;font-family:var(--sans);
+  width:100%;padding:8px 16px;text-align:left;font-family:var(--sans);
   font-size:13px;letter-spacing:0.02em;color:var(--ink-2);
   border:none;background:transparent;border-left:2px solid transparent;
   transition:.15s;display:flex;align-items:center;gap:10px;cursor:pointer;
@@ -561,7 +561,7 @@ body.presentacion .hero-value{font-size:54px}
       </nav>
       <div class="sidebar-foot">
         <div class="dmz-sig sidebar"><span class="dmz-line"></span><span class="dmz-txt">DMZ</span><span class="dmz-line"></span></div>
-        <button class="btn-logout" style="width:100%;margin-top:10px" onclick="cerrarSesion()">Cerrar sesión</button>
+        <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
 
@@ -753,7 +753,7 @@ body.presentacion .hero-value{font-size:54px}
         <div class="wordmark">
           <span class="ss">SS</span> <span class="co">COMERCIAL</span>
         </div>
-        <div class="tagline" style="font-family:var(--font-display);font-size:11px;letter-spacing:2px;color:var(--text-mute);margin-top:4px">PANEL ADMIN</div>
+        <div class="tagline">PANEL ADMIN</div>
         <div class="sidebar-user-info hidden" id="adminSidebarUser">
           <span class="sidebar-user-name" id="adminSidebarNombre"></span>
           <span class="rol-badge" id="adminSidebarRol"></span>
@@ -774,7 +774,7 @@ body.presentacion .hero-value{font-size:54px}
           <span class="dmz-txt">DMZ</span>
           <span class="dmz-line"></span>
         </div>
-        <button class="btn-logout" style="width:100%;margin-top:10px" onclick="cerrarSesion()">Cerrar sesión</button>
+        <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
 
