@@ -471,15 +471,6 @@ body.presentacion .hero-value{font-size:54px}
 .toast.err{background:var(--err)}
 .toast.info{background:var(--accent)}
 
-/* ============================================================
-   ROL BADGES (gestión de vendedores)
-   ============================================================ */
-.rol-badge{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;padding:2px 8px;border-radius:2px;font-weight:500;display:inline-block}
-.rol-badge.vendedor{background:var(--accent-soft);color:var(--accent)}
-.rol-badge.supervisor{background:var(--warn-soft);color:var(--warn)}
-.rol-badge.gerente{background:var(--ok-soft);color:var(--ok)}
-.rol-badge.desarrollador{background:var(--err-soft);color:var(--err)}
-
 </style>
 </head>
 <body>
@@ -752,7 +743,6 @@ body.presentacion .hero-value{font-size:54px}
         <button data-anav="aPendientes">⏳ Pendientes <span id="adNumPend" class="estado-badge pendiente hidden" style="margin-left:auto">0</span></button>
         <button data-anav="aVentas">💼 Ventas</button>
         <button data-anav="aEquipos">📦 Catálogo</button>
-        <button data-anav="aVendedores">👤 Vendedores</button>
         <button data-anav="aCertificacion">📥 Certificación</button>
       </nav>
       <div class="sidebar-foot">
@@ -937,15 +927,6 @@ body.presentacion .hero-value{font-size:54px}
           </div>
         </div>
 
-        <!-- VENDEDORES -->
-        <div id="aVendedores" class="a-page hidden">
-          <div class="page-title"><span class="accent-bar"></span><span>Vendedores</span></div>
-          <button class="btn btn-primary btn-block mb" onclick="abrirModalVendedor(null)">➕ Agregar vendedor</button>
-          <div id="aListaVendedores">
-            <div class="loader"><div class="spinner"></div></div>
-          </div>
-        </div>
-
         <!-- CERTIFICACIÓN -->
         <div id="aCertificacion" class="a-page hidden">
           <div class="page-title"><span class="accent-bar"></span><span>Certificación mensual</span></div>
@@ -977,9 +958,6 @@ body.presentacion .hero-value{font-size:54px}
         </button>
         <button data-anav="aEquipos">
           <span class="icon">📦</span>Catálogo
-        </button>
-        <button data-anav="aVendedores">
-          <span class="icon">👤</span>Vendedores
         </button>
         <button data-anav="aCertificacion">
           <span class="icon">📥</span>Certif.
@@ -1071,43 +1049,27 @@ function nombreMesActual() {
 // LOGIN
 // ============================================================
 async function initLogin() {
-  const r = await api("obtenerUsuariosLogin");
-  if (!r.ok) {
-    toast("Error cargando usuarios: " + (r.error || ""), "err");
-    return;
-  }
+  const r = await api("obtenerVendedores");
+  if (r.ok) {
+    state.vendedores = r.vendedores || [];
+    const sel = $("loginVendedor");
+    sel.innerHTML = '<option value="">-- Seleccionar --</option>';
 
-  const usuarios  = r.usuarios || [];
-  const vendedores = usuarios.filter(u => u.rol === "vendedor");
-  const especiales = usuarios.filter(u => u.rol !== "vendedor");
+    // Entrada ADMIN al inicio (no aparece en la hoja Vendedores)
+    const opAdmin = document.createElement("option");
+    opAdmin.value = "ADMIN";
+    opAdmin.textContent = "👤 ADMIN";
+    sel.appendChild(opAdmin);
 
-  const sel = $("loginVendedor");
-  sel.innerHTML = '<option value="">-- Seleccionar --</option>';
-
-  // Vendedores en su propio optgroup
-  if (vendedores.length) {
-    const grp = document.createElement("optgroup");
-    grp.label = "Vendedores";
-    vendedores.forEach(u => {
+    // Resto de vendedores
+    state.vendedores.forEach(v => {
       const op = document.createElement("option");
-      op.value = u.nombre;
-      op.textContent = u.nombre;
-      grp.appendChild(op);
+      op.value = v.nombre;
+      op.textContent = v.nombre;
+      sel.appendChild(op);
     });
-    sel.appendChild(grp);
-  }
-
-  // Perfiles especiales (supervisor, gerente, desarrollador) con rol entre paréntesis
-  if (especiales.length) {
-    const grp = document.createElement("optgroup");
-    grp.label = "Otros perfiles";
-    especiales.forEach(u => {
-      const op = document.createElement("option");
-      op.value = u.nombre;
-      op.textContent = u.nombre + " (" + u.rol + ")";
-      grp.appendChild(op);
-    });
-    sel.appendChild(grp);
+  } else {
+    toast("Error cargando vendedores: " + (r.error || ""), "err");
   }
 }
 
@@ -1722,16 +1684,14 @@ function cerrarModal() {
 // ADMIN - INIT
 // ============================================================
 async function initAdmin() {
-  const [eqR, locR, mesR, vendR] = await Promise.all([
+  const [eqR, locR, mesR] = await Promise.all([
     api("obtenerEquipos"),
     api("obtenerLocalidades"),
-    api("obtenerMesesDisponibles"),
-    api("obtenerVendedores")
+    api("obtenerMesesDisponibles")
   ]);
-  if (eqR.ok)   state.equipos    = eqR.equipos    || [];
-  if (locR.ok)  state.localidades = locR.localidades || [];
-  if (mesR.ok)  state.meses       = mesR.meses       || [];
-  if (vendR.ok) state.vendedores  = vendR.vendedores  || [];
+  if (eqR.ok) state.equipos = eqR.equipos || [];
+  if (locR.ok) state.localidades = locR.localidades || [];
+  if (mesR.ok) state.meses = mesR.meses || [];
 
   state.mesActualNombre = nombreMesActual();
   if (!state.meses.includes(state.mesActualNombre)) {
@@ -1767,11 +1727,10 @@ function irAdmin(pageId) {
     b.classList.toggle("active", b.dataset.anav === pageId);
   });
 
-  if (pageId === "aDashboard")   cargarDashboard();
-  if (pageId === "aPendientes")  cargarPendientes();
-  if (pageId === "aVentas")      cargarVentasAdmin();
-  if (pageId === "aEquipos")     cargarEquiposAdmin();
-  if (pageId === "aVendedores")  cargarVendedoresAdmin();
+  if (pageId === "aDashboard") cargarDashboard();
+  if (pageId === "aPendientes") cargarPendientes();
+  if (pageId === "aVentas") cargarVentasAdmin();
+  if (pageId === "aEquipos") cargarEquiposAdmin();
 }
 
 // ============================================================
@@ -2502,179 +2461,6 @@ function abrirModalEquipo(equipo) {
       };
     }
   }, 50);
-}
-
-// ============================================================
-// ADMIN - VENDEDORES
-// ============================================================
-async function cargarVendedoresAdmin() {
-  const r = await api("obtenerVendedores");
-  const cont = $("aListaVendedores");
-  if (!r.ok) {
-    cont.innerHTML = '<div class="empty">Error: ' + escapeHtml(r.error || "") + '</div>';
-    return;
-  }
-  state.vendedores = r.vendedores || [];
-  if (!state.vendedores.length) {
-    cont.innerHTML = '<div class="empty"><span class="icon">👤</span>Sin vendedores registrados</div>';
-    return;
-  }
-
-  if (window.innerWidth >= 1024) {
-    let html = '<div style="overflow-x:auto"><table><thead><tr>' +
-      '<th>Nombre</th><th>Localidad</th><th>Zona</th><th>Rol</th>' +
-      '<th style="text-align:right">Acciones</th>' +
-      '</tr></thead><tbody>';
-    state.vendedores.forEach((v, idx) => {
-      const zonaText = v.zonas && v.zonas.length ? v.zonas.join(", ") : "—";
-      html += '<tr>' +
-        '<td><strong>' + escapeHtml(v.nombre) + '</strong></td>' +
-        '<td>' + escapeHtml(v.localidad || "—") + '</td>' +
-        '<td style="text-transform:capitalize">' + escapeHtml(zonaText) + '</td>' +
-        '<td><span class="rol-badge ' + escapeHtml(v.rol) + '">' + escapeHtml(v.rol) + '</span></td>' +
-        '<td style="text-align:right;white-space:nowrap">' +
-          '<button class="btn btn-secondary btn-sm" onclick="abrirModalVendedor(' + idx + ')">Editar</button>' +
-          '<button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="darDeBajaVendedor(' + idx + ')">Dar de baja</button>' +
-        '</td>' +
-        '</tr>';
-    });
-    html += '</tbody></table></div>';
-    cont.innerHTML = html;
-  } else {
-    let html = "";
-    state.vendedores.forEach((v, idx) => {
-      const zonaText = v.zonas && v.zonas.length ? v.zonas.join(", ") : "—";
-      html += '<div class="venta-card">' +
-        '<div class="vc-top">' +
-          '<div>' +
-            '<div class="vc-equipo">' + escapeHtml(v.nombre) +
-              ' <span class="rol-badge ' + escapeHtml(v.rol) + '">' + escapeHtml(v.rol) + '</span>' +
-            '</div>' +
-            '<div class="vc-fecha">' + escapeHtml(v.localidad || "—") + ' · ' + escapeHtml(zonaText) + '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="vc-actions" style="margin-top:8px;justify-content:flex-end">' +
-          '<button class="btn btn-secondary btn-sm" onclick="abrirModalVendedor(' + idx + ')">Editar</button>' +
-          '<button class="btn btn-danger btn-sm" onclick="darDeBajaVendedor(' + idx + ')">Dar de baja</button>' +
-        '</div>' +
-        '</div>';
-    });
-    cont.innerHTML = html;
-  }
-}
-
-function abrirModalVendedor(param) {
-  const vendedor = (typeof param === "number") ? (state.vendedores[param] || null) : null;
-  const esEdicion = !!vendedor;
-  const zonasActivas = esEdicion ? (vendedor.zonas || []) : [];
-
-  const optsLoc = '<option value="">— Sin asignar —</option>' +
-    state.localidades.map(l =>
-      '<option value="' + escapeHtml(l.nombre) + '"' +
-      (esEdicion && l.nombre === vendedor.localidad ? " selected" : "") + '>' +
-      escapeHtml(l.nombre) + '</option>'
-    ).join("");
-
-  const checkZona = (val) => zonasActivas.includes(val) ? " checked" : "";
-
-  abrirModal({
-    titulo: esEdicion ? "Editar vendedor" : "Nuevo vendedor",
-    contenido:
-      '<div class="form-group">' +
-        '<label>Nombre <span class="req">*</span></label>' +
-        '<input type="text" id="vndNombre" value="' + (esEdicion ? escapeHtml(vendedor.nombre) : "") + '">' +
-      '</div>' +
-      '<div class="form-group">' +
-        '<label>PIN <span class="req">*</span></label>' +
-        '<input type="text" id="vndPin" inputmode="numeric" maxlength="6" placeholder="mínimo 4 dígitos">' +
-        '<span class="hint">' + (esEdicion ? "Ingresá el PIN actual o uno nuevo." : "Mínimo 4 dígitos.") + '</span>' +
-      '</div>' +
-      '<div class="form-group">' +
-        '<label>Localidad</label>' +
-        '<select id="vndLocalidad">' + optsLoc + '</select>' +
-      '</div>' +
-      '<div class="form-group">' +
-        '<label>Zona(s)</label>' +
-        '<div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">' +
-          '<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;font-weight:400">' +
-            '<input type="checkbox" id="vndZonaNorte" value="norte"' + checkZona("norte") + ' style="width:auto;margin-top:2px">' +
-            '<span><strong>Norte</strong><br><span style="font-size:11px;color:var(--text-mute)">Las Heras · Pico Truncado · Perito Moreno</span></span>' +
-          '</label>' +
-          '<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;font-weight:400">' +
-            '<input type="checkbox" id="vndZonaCentro" value="centro"' + checkZona("centro") + ' style="width:auto;margin-top:2px">' +
-            '<span><strong>Centro</strong><br><span style="font-size:11px;color:var(--text-mute)">Gobernador Gregores · Puerto San Julián · Piedra Buena · Puerto Santa Cruz · Río Turbio</span></span>' +
-          '</label>' +
-          '<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;font-weight:400">' +
-            '<input type="checkbox" id="vndZonaRgl" value="rgl"' + checkZona("rgl") + ' style="width:auto;margin-top:2px">' +
-            '<span><strong>RGL</strong><br><span style="font-size:11px;color:var(--text-mute)">Río Gallegos</span></span>' +
-          '</label>' +
-        '</div>' +
-        '<span class="hint">Vendedor: solo una zona. Supervisor: puede tener varias.</span>' +
-      '</div>' +
-      '<div class="form-group">' +
-        '<label>Rol <span class="req">*</span></label>' +
-        '<select id="vndRol">' +
-          '<option value="vendedor"' + (!esEdicion || vendedor.rol === "vendedor" ? " selected" : "") + '>Vendedor</option>' +
-          '<option value="supervisor"' + (esEdicion && vendedor.rol === "supervisor" ? " selected" : "") + '>Supervisor</option>' +
-          '<option value="gerente"' + (esEdicion && vendedor.rol === "gerente" ? " selected" : "") + '>Gerente comercial</option>' +
-          '<option value="desarrollador"' + (esEdicion && vendedor.rol === "desarrollador" ? " selected" : "") + '>Desarrollador</option>' +
-        '</select>' +
-      '</div>',
-    acciones: [
-      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: esEdicion ? "Guardar" : "Crear", clase: "btn-primary", accion: async () => {
-        const nombre    = $("vndNombre").value.trim();
-        const pin       = $("vndPin").value.trim();
-        const localidad = $("vndLocalidad").value;
-        const rol       = $("vndRol").value;
-        const zonas     = ["vndZonaNorte", "vndZonaCentro", "vndZonaRgl"]
-          .filter(id => $(id) && $(id).checked)
-          .map(id => $(id).value);
-
-        if (!nombre)        { toast("El nombre es obligatorio", "err"); return; }
-        if (pin.length < 4) { toast("El PIN debe tener al menos 4 caracteres", "err"); return; }
-
-        const datos = {
-          operacion: esEdicion ? "editar" : "agregar",
-          nombre, pin, localidad, rol,
-          zona: zonas.join(",")
-        };
-        if (esEdicion) datos.id = vendedor.id;
-
-        const r = await api("gestionarVendedor", datos);
-        cerrarModal();
-        if (r.ok) {
-          toast(esEdicion ? "Vendedor actualizado" : "Vendedor creado", "ok");
-          cargarVendedoresAdmin();
-        } else {
-          toast("Error: " + (r.error || ""), "err");
-        }
-      }}
-    ]
-  });
-}
-
-async function darDeBajaVendedor(param) {
-  const v = (typeof param === "number") ? state.vendedores[param] : null;
-  if (!v) return;
-  abrirModal({
-    titulo: "Dar de baja",
-    contenido: '<p>¿Dar de baja a <strong>' + escapeHtml(v.nombre) + '</strong>?</p>' +
-      '<p style="margin-top:8px;font-size:13px;color:var(--text-dim)">El usuario no podrá iniciar sesión. Los registros de ventas se conservan.</p>',
-    acciones: [
-      { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: "Dar de baja", clase: "btn-danger", accion: async () => {
-        cerrarModal();
-        const r = await api("gestionarVendedor", { operacion: "baja", id: v.id });
-        if (r.ok) {
-          toast(escapeHtml(v.nombre) + " dado de baja", "ok");
-          cargarVendedoresAdmin();
-        } else {
-          toast("Error: " + (r.error || ""), "err");
-        }
-      }}
-    ]
-  });
 }
 
 // ============================================================
