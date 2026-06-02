@@ -133,9 +133,9 @@ body{
   width:212px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
   display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
 }
-.sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .sidebar-header .tagline{font-family:var(--sans);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-mute);margin-top:2px}
-.sidebar nav{padding:12px 0;flex:1;overflow-y:visible}
+.sidebar nav{padding:8px 0;flex:1 1 auto;min-height:0;overflow-y:visible}
 .sidebar nav button{
   width:100%;padding:9px 20px;text-align:left;font-family:var(--sans);
   font-size:13px;letter-spacing:0.02em;color:var(--ink-2);
@@ -144,7 +144,7 @@ body{
 }
 .sidebar nav button:hover{background:var(--accent-soft)}
 .sidebar nav button.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:500}
-.sidebar-foot{padding:10px 20px;border-top:1px solid var(--border);flex-shrink:0}
+.sidebar-foot{padding:8px 20px;border-top:1px solid var(--border);flex-shrink:0}
 .admin-main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 /* En mobile, sidebar oculto */
@@ -393,7 +393,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 
 /* Firma DMZ */
 .dmz-sig{display:flex;align-items:center;gap:10px;justify-content:center;margin:16px 0 24px}
-.dmz-sig.sidebar{margin:0 0 12px}
+.dmz-sig.sidebar{margin:0 0 6px}
 .dmz-line{height:1px;width:40px;background:var(--border-strong)}
 .dmz-sig.sidebar .dmz-line{flex:1;width:auto}
 .dmz-txt{font-family:var(--serif);font-size:13px;letter-spacing:0.3em;color:var(--text-mute)}
