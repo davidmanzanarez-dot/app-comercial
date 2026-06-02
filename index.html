@@ -131,11 +131,11 @@ body{
 .admin-layout{display:flex;min-height:100vh}
 .sidebar{
   width:212px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
 }
 .sidebar-header{padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
 .sidebar-header .tagline{font-family:var(--sans);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-mute);margin-top:2px}
-.sidebar nav{padding:8px 0;flex:1;min-height:0;overflow-y:auto}
+.sidebar nav{padding:8px 0;flex:1 1 auto;min-height:0;overflow-y:auto}
 .sidebar nav button{
   width:100%;padding:8px 16px;text-align:left;font-family:var(--sans);
   font-size:13px;letter-spacing:0.02em;color:var(--ink-2);
@@ -502,7 +502,39 @@ body.presentacion .hero-value{font-size:54px}
 .rol-badge.desarrollador{background:var(--err-soft);color:var(--err)}
 
 /* sidebar user info */
-.sidebar-user-info{padding-bottom:6px;margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden}
+.sidebar-user-info{padding-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden}
+
+/* dashboard vendedor v2 */
+.vd-kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+@media(max-width:600px){.vd-kpi3{grid-template-columns:1fr}}
+.vd-spark{margin-top:8px;height:32px}
+.vd-prog-wrap{margin-top:10px}
+.vd-prog-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-mute);margin-bottom:4px}
+.vd-prog-bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;display:flex}
+.vd-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:600px){.vd-row2{grid-template-columns:1fr}}
+.vd-bar-row{margin-bottom:9px}
+.vd-bar-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.vd-bar-name{font-size:12px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px}
+.vd-bar-val{font-size:11px;color:var(--text-dim);flex-shrink:0}
+.vd-bar-track{height:6px;border-radius:3px;background:var(--surface-2)}
+.vd-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.vd-rank-hdr{display:grid;grid-template-columns:28px 1fr 80px 80px 64px;gap:6px;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mute);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.vd-rank-row{display:grid;grid-template-columns:28px 1fr 80px 80px 64px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
+.vd-rank-row:last-child{border-bottom:none}
+.vd-rank-row.vd-rank-yo{background:var(--accent-soft);border-radius:6px;padding-left:6px;padding-right:6px;margin:2px -6px;border-bottom:none}
+.vd-rank-pos{font-size:14px;text-align:center}
+.vd-rank-name{font-size:13px;color:var(--ink)}
+.vd-yo{color:var(--accent);font-weight:500}
+.vd-rank-col{font-size:11px;color:var(--text-dim);text-align:right}
+.vd-rank-mov{text-align:center}
+.mv-up{display:inline-block;font-size:10px;padding:2px 6px;border-radius:20px;background:var(--ok-soft);color:var(--ok)}
+.mv-dn{display:inline-block;font-size:10px;padding:2px 6px;border-radius:20px;background:var(--err-soft);color:var(--err)}
+.mv-eq{display:inline-block;font-size:10px;padding:2px 6px;border-radius:20px;background:var(--surface-2);color:var(--text-mute)}
+@media(max-width:600px){
+  .vd-rank-hdr,.vd-rank-row{grid-template-columns:24px 1fr 60px 50px}
+  .vd-rank-hdr>div:nth-child(5),.vd-rank-row>div:nth-child(5){display:none}
+}
 .sidebar-user-name{font-size:11px;font-weight:500;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 
 </style>
@@ -516,7 +548,7 @@ body.presentacion .hero-value{font-size:54px}
   <div class="login-wrap">
     <div class="login-card">
       <div class="login-brand-side">
-        <div class="login-wm"><span class="ss">SSServicios</span> <span class="co">COMERCIAL</span></div>
+        <div class="login-wm"><span class="ss">SS</span> <span class="co">COMERCIAL</span></div>
         <div class="login-brand-tag">Gestión de comisiones</div>
         <div class="dmz-sig login-brand-dmz">
           <span class="dmz-line"></span>
@@ -560,6 +592,7 @@ body.presentacion .hero-value{font-size:54px}
         <button data-nav="vMisRegistros">▦ Mis registros</button>
       </nav>
       <div class="sidebar-foot">
+        <div class="dmz-sig sidebar"><span class="dmz-line"></span><span class="dmz-txt">DMZ</span><span class="dmz-line"></span></div>
         <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
@@ -587,33 +620,58 @@ body.presentacion .hero-value{font-size:54px}
         ⚠️ <span><strong id="brNum">0</strong> venta(s) rechazada(s) — revisar</span>
       </div>
 
-      <div class="kpi-grid">
+      <div class="vd-kpi3">
         <div class="kpi highlight">
-          <div class="kpi-label">Comisión del mes</div>
-          <div class="kpi-value" id="kComMes">$0</div>
-          <div class="kpi-sub" id="kCuotasMes">0 cuotas</div>
+          <div class="kpi-label">Comisión aprobada</div>
+          <div class="kpi-value" id="kComAprobada">$0</div>
+          <div class="kpi-sub" id="kComAprobadaDelta"></div>
+          <div class="vd-spark">
+            <svg width="100%" height="32" viewBox="0 0 160 32" preserveAspectRatio="none" id="svgSparkAprobada">
+              <polyline points="0,28 160,28" fill="none" stroke="#2d6a4f" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
         <div class="kpi">
-          <div class="kpi-label">Mes próximo</div>
-          <div class="kpi-value" id="kComProx">$0</div>
-          <div class="kpi-sub">cuotas comprometidas</div>
+          <div class="kpi-label">Comisión pendiente</div>
+          <div class="kpi-value" id="kComPendiente" style="font-size:22px;color:var(--warn)">$0</div>
+          <div class="vd-prog-wrap">
+            <div class="vd-prog-labels"><span>Aprobada</span><span>Pendiente</span></div>
+            <div class="vd-prog-bar">
+              <div id="kProgAprobada" style="height:100%;border-radius:3px 0 0 3px;background:var(--ok);width:50%"></div>
+              <div id="kProgPendiente" style="height:100%;border-radius:0 3px 3px 0;background:var(--warn);width:50%"></div>
+            </div>
+            <div class="vd-prog-labels" style="margin-top:3px">
+              <span style="color:var(--ok)" id="kProgLblAp">$0</span>
+              <span style="color:var(--warn)" id="kProgLblPe">$0</span>
+            </div>
+          </div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Ventas del mes</div>
           <div class="kpi-value" id="kVentas">0</div>
-        </div>
-        <div class="kpi">
-          <div class="kpi-label">Equipo más vendido</div>
-          <div class="kpi-value small" id="kEquipoTop">—</div>
+          <div class="kpi-sub" id="kVentasDelta"></div>
+          <div class="vd-spark">
+            <svg width="100%" height="32" viewBox="0 0 160 32" preserveAspectRatio="none" id="svgSparkVentas">
+              <polyline points="0,28 160,28" fill="none" stroke="#8b2e2e" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
       </div>
 
-
-      <div class="rank-card">
-        <div class="card-title">🏆 Ranking del mes · Top 5</div>
-        <div id="vRankingLista">
-          <div class="vd-empty" style="padding:18px">Cargando ranking...</div>
+      <div class="vd-row2">
+        <div class="rank-card">
+          <div class="card-title">Equipos más vendidos</div>
+          <div id="kTopEquipos"><div class="vd-empty">Cargando...</div></div>
         </div>
+        <div class="rank-card">
+          <div class="card-title">Planes más vendidos</div>
+          <div id="kTopPlanes"><div class="vd-empty">Cargando...</div></div>
+        </div>
+      </div>
+
+      <div class="rank-card" style="margin-bottom:14px">
+        <div class="card-title">🏆 Ranking del equipo</div>
+        <div id="vRankingLista"><div class="vd-empty" style="padding:18px">Cargando ranking...</div></div>
       </div>
 
       <button class="btn btn-primary btn-block" onclick="irA('vCargar')">
@@ -767,7 +825,13 @@ body.presentacion .hero-value{font-size:54px}
           <span class="sidebar-user-name" id="adminSidebarNombre"></span>
           <span class="rol-badge" id="adminSidebarRol"></span>
         </div>
-        <button class="btn-logout" style="width:100%;margin-top:6px" onclick="cerrarSesion()">Cerrar sesión</button>
+        <!-- Firma DMZ V7 en sidebar -->
+        <div class="dmz-sig sidebar">
+          <span class="dmz-line"></span>
+          <span class="dmz-txt">DMZ</span>
+          <span class="dmz-line"></span>
+        </div>
+        <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
 
@@ -1273,29 +1337,88 @@ function irA(pageId) {
 // VENDEDOR - INICIO
 // ============================================================
 async function cargarInicioVendedor() {
-  const r = await api("obtenerResumen", { vendedor: state.usuario.nombre, mes: state.mesActualNombre });
-  if (!r.ok) { toast("Error cargando resumen", "err"); return; }
+  const [r, rv] = await Promise.all([
+    api("obtenerResumen", { vendedor: state.usuario.nombre, mes: state.mesActualNombre }),
+    api("obtenerMisRegistros", { vendedor: state.usuario.nombre, mes: state.mesActualNombre })
+  ]);
 
-  $("kComMes").textContent = fmtMoney(r.totalComision);
-  $("kCuotasMes").textContent = (r.cantidadCuotasMes || 0) + " cuota(s)";
-  $("kComProx").textContent = fmtMoney(r.totalComisionMesProximo);
-  $("kVentas").textContent = r.cantidadVentas || 0;
-  $("kEquipoTop").textContent = r.equipoTop || "—";
+  if (!r.ok) { toast("Error cargando resumen", "err"); return; }
 
   // Banners
   const bp = $("bannerPendientes"), br = $("bannerRechazadas");
-  if (r.pendientesV > 0) {
-    bp.classList.remove("hidden");
-    $("bpNum").textContent = r.pendientesV;
-  } else bp.classList.add("hidden");
+  if (r.pendientesV > 0) { bp.classList.remove("hidden"); $("bpNum").textContent = r.pendientesV; }
+  else bp.classList.add("hidden");
+  if (r.rechazadasV > 0) { br.classList.remove("hidden"); $("brNum").textContent = r.rechazadasV; }
+  else br.classList.add("hidden");
 
-  if (r.rechazadasV > 0) {
-    br.classList.remove("hidden");
-    $("brNum").textContent = r.rechazadasV;
-  } else br.classList.add("hidden");
+  // Procesar ventas para comisión aprobada/pendiente y top productos
+  let comAprobada = 0, comPendiente = 0;
+  const equiposMap = {}, planesMap = {};
+  const PLAN_KEYS = ["GB", "DGO", "Pack", "Paramount", "Fútbol", "SSMovil"];
 
-  // Cargar ranking Top 5 del mes
+  if (rv.ok && rv.ventas) {
+    rv.ventas.forEach(v => {
+      const esPrimera = String(v.nroCuota || "").startsWith("1/") || String(v.nroCuota || "") === "1/1";
+      const com = Number(v.comisionCuota || 0);
+      if (v.estado === "Aprobada") comAprobada += com;
+      if (v.estado === "Pendiente") comPendiente += com;
+      if (esPrimera) {
+        const nombre = String(v.equipo || "").split(" · ")[0].trim();
+        const esPlan = PLAN_KEYS.some(k => nombre.includes(k));
+        const map = esPlan ? planesMap : equiposMap;
+        if (!map[nombre]) map[nombre] = { uds: 0, com: 0 };
+        map[nombre].uds++;
+        map[nombre].com += Number(v.comisionTotal || 0);
+      }
+    });
+  }
+
+  // KPI comisión aprobada
+  $("kComAprobada").textContent = fmtMoney(comAprobada);
+
+  // KPI comisión pendiente + barra
+  $("kComPendiente").textContent = fmtMoney(comPendiente);
+  const total = comAprobada + comPendiente;
+  if (total > 0) {
+    const pctAp = Math.round(comAprobada / total * 100);
+    $("kProgAprobada").style.width = pctAp + "%";
+    $("kProgPendiente").style.width = (100 - pctAp) + "%";
+  } else {
+    $("kProgAprobada").style.width = "0%";
+    $("kProgPendiente").style.width = "100%";
+  }
+  $("kProgLblAp").textContent = fmtMoney(comAprobada);
+  $("kProgLblPe").textContent = fmtMoney(comPendiente);
+
+  // KPI ventas
+  $("kVentas").textContent = r.cantidadVentas || 0;
+
+  // Top equipos y planes
+  _renderTopProductos("kTopEquipos", equiposMap, "var(--accent-2)");
+  _renderTopProductos("kTopPlanes", planesMap, "var(--accent)");
+
+  // Ranking
   cargarRankingVendedor();
+}
+
+function _renderTopProductos(containerId, map, color) {
+  const cont = $(containerId);
+  if (!cont) return;
+  const items = Object.entries(map).sort((a, b) => b[1].uds - a[1].uds).slice(0, 3);
+  if (!items.length) { cont.innerHTML = '<div class="vd-empty" style="padding:12px">Sin datos este mes</div>'; return; }
+  const maxUds = items[0][1].uds;
+  let html = "";
+  items.forEach(([nombre, d]) => {
+    const pct = Math.round(d.uds / maxUds * 100);
+    html += `<div class="vd-bar-row">
+      <div class="vd-bar-meta">
+        <span class="vd-bar-name">${escapeHtml(nombre)}</span>
+        <span class="vd-bar-val">${d.uds} ud${d.uds > 1 ? "s" : ""} · ${fmtMoney(d.com)}</span>
+      </div>
+      <div class="vd-bar-track"><div class="vd-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  });
+  cont.innerHTML = html;
 }
 
 // ============================================================
@@ -2122,28 +2245,65 @@ function renderChartVendedoresMonto(vendArr) {
 
 
 // ============================================================
-// RANKING TOP 5 (inicio del vendedor)
+// RANKING TOP 5 (inicio del vendedor) — este mes vs anterior
 // ============================================================
 async function cargarRankingVendedor() {
-  const r = await api("obtenerRanking", { mes: state.mesActualNombre });
   const cont = $("vRankingLista");
   if (!cont) return;
-  if (!r.ok || !r.ranking || !r.ranking.length) {
+
+  const [rActual, mesesR] = await Promise.all([
+    api("obtenerRanking", { mes: state.mesActualNombre }),
+    api("obtenerMesesDisponibles")
+  ]);
+
+  // Buscar mes anterior
+  let rankingAnt = [];
+  if (mesesR.ok && mesesR.meses && mesesR.meses.length > 1) {
+    const mesAnt = mesesR.meses.find(m => m !== state.mesActualNombre);
+    if (mesAnt) {
+      const rAnt = await api("obtenerRanking", { mes: mesAnt });
+      if (rAnt.ok) rankingAnt = rAnt.ranking || [];
+    }
+  }
+
+  if (!rActual.ok || !rActual.ranking || !rActual.ranking.length) {
     cont.innerHTML = '<div class="vd-empty" style="padding:18px">Todavía no hay ventas aprobadas este mes</div>';
     return;
   }
-  const top5 = r.ranking.slice(0, 5);
+
+  const top5 = rActual.ranking.slice(0, 5);
   const medallas = ["🥇", "🥈", "🥉"];
-  let html = "";
+  const posAnt = {};
+  rankingAnt.forEach((v, i) => { posAnt[v.vendedor] = { pos: i + 1, ventas: v.ventas }; });
+
+  let html = `<div class="vd-rank-hdr">
+    <div></div><div>Vendedor</div><div style="text-align:right">Este mes</div><div style="text-align:right">Mes ant.</div><div>Movim.</div>
+  </div>`;
+
   top5.forEach((v, i) => {
-    const izq = i < 3
-      ? '<div class="rank-medalla">' + medallas[i] + '</div>'
-      : '<div class="rank-pos">' + (i + 1) + '</div>';
-    html += '<div class="rank-row">' + izq +
-      '<div class="rank-nombre">' + escapeHtml(v.vendedor) + '</div>' +
-      '<div class="rank-ventas">' + v.ventas + '<span class="u">ventas</span></div>' +
-      '</div>';
+    const posActual = i + 1;
+    const antData = posAnt[v.vendedor];
+    const ventasAnt = antData ? antData.ventas + " v." : "—";
+    const esYo = v.vendedor === state.usuario.nombre;
+
+    let movHtml = '<span class="mv-eq">nuevo</span>';
+    if (antData) {
+      const diff = antData.pos - posActual;
+      if (diff > 0) movHtml = `<span class="mv-up">▲ ${diff}°</span>`;
+      else if (diff < 0) movHtml = `<span class="mv-dn">▼ ${Math.abs(diff)}°</span>`;
+      else movHtml = '<span class="mv-eq">= igual</span>';
+    }
+
+    const medal = i < 3 ? medallas[i] : '<span style="font-size:12px;color:var(--text-mute)">' + posActual + '°</span>';
+    html += `<div class="vd-rank-row${esYo ? " vd-rank-yo" : ""}">
+      <div class="vd-rank-pos">${medal}</div>
+      <div class="vd-rank-name${esYo ? " vd-yo" : ""}">${escapeHtml(v.vendedor)}</div>
+      <div class="vd-rank-col${esYo ? " vd-yo" : ""}">${v.ventas} v.</div>
+      <div class="vd-rank-col">${ventasAnt}</div>
+      <div class="vd-rank-mov">${movHtml}</div>
+    </div>`;
   });
+
   cont.innerHTML = html;
 }
 
