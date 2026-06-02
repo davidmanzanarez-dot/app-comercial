@@ -135,16 +135,16 @@ body{
 }
 .sidebar-header{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
 .sidebar-header .tagline{font-family:var(--sans);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-mute);margin-top:2px}
-.sidebar nav{padding:12px 0;flex:1;overflow-y:auto}
+.sidebar nav{padding:12px 0;flex:1;overflow-y:visible}
 .sidebar nav button{
-  width:100%;padding:11px 20px;text-align:left;font-family:var(--sans);
+  width:100%;padding:9px 20px;text-align:left;font-family:var(--sans);
   font-size:13px;letter-spacing:0.02em;color:var(--ink-2);
   border:none;background:transparent;border-left:2px solid transparent;
   transition:.15s;display:flex;align-items:center;gap:10px;cursor:pointer;
 }
 .sidebar nav button:hover{background:var(--accent-soft)}
 .sidebar nav button.active{background:var(--accent-soft);color:var(--accent);border-left-color:var(--accent);font-weight:500}
-.sidebar-foot{padding:14px 20px;border-top:1px solid var(--border);flex-shrink:0}
+.sidebar-foot{padding:10px 20px;border-top:1px solid var(--border);flex-shrink:0}
 .admin-main{flex:1;display:flex;flex-direction:column;min-width:0}
 
 /* En mobile, sidebar oculto */
@@ -502,8 +502,8 @@ body.presentacion .hero-value{font-size:54px}
 .rol-badge.desarrollador{background:var(--err-soft);color:var(--err)}
 
 /* sidebar user info */
-.sidebar-user-info{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.sidebar-user-name{font-size:12px;font-weight:500;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.sidebar-user-info{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden}
+.sidebar-user-name{font-size:11px;font-weight:500;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 
 </style>
 </head>
