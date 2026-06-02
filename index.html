@@ -392,9 +392,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 }
 
 /* Firma DMZ */
-.dmz-sig{display:flex;align-items:center;gap:10px;justify-content:center;margin:16px 0 24px}
-.dmz-sig.sidebar{margin:0 0 6px}
-.dmz-line{height:1px;width:40px;background:var(--border-strong)}
+.dmz-sig{display:none}.dmz-line{height:1px;width:40px;background:var(--border-strong)}
 .dmz-sig.sidebar .dmz-line{flex:1;width:auto}
 .dmz-txt{font-family:var(--serif);font-size:13px;letter-spacing:0.3em;color:var(--text-mute)}
 
@@ -587,7 +585,6 @@ body.presentacion .hero-value{font-size:54px}
         <button data-nav="vMisRegistros">▦ Mis registros</button>
       </nav>
       <div class="sidebar-foot">
-        <div class="dmz-sig sidebar"><span class="dmz-line"></span><span class="dmz-txt">DMZ</span><span class="dmz-line"></span></div>
         <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
@@ -820,13 +817,7 @@ body.presentacion .hero-value{font-size:54px}
           <span class="sidebar-user-name" id="adminSidebarNombre"></span>
           <span class="rol-badge" id="adminSidebarRol"></span>
         </div>
-        <!-- Firma DMZ V7 en sidebar -->
-        <div class="dmz-sig sidebar">
-          <span class="dmz-line"></span>
-          <span class="dmz-txt">DMZ</span>
-          <span class="dmz-line"></span>
-        </div>
-        <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
+        <button class="btn-logout" style="width:100%;margin-top:6px" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
 
