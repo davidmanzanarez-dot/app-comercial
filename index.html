@@ -1003,13 +1003,30 @@ body.presentacion .hero-value{font-size:54px}
 
         <!-- CERTIFICACIÓN -->
         <div id="aCertificacion" class="a-page hidden">
-          <div class="page-title"><span class="accent-bar"></span><span>Certificación mensual</span></div>
+          <div class="page-title"><span class="accent-bar"></span><span>Certificación</span></div>
           <div class="card">
             <div class="card-title">Generar Excel</div>
-            <p class="text-dim mb">Descarga un Excel con las comisiones aprobadas del mes (incluye cuotas de meses anteriores que caen en este mes).</p>
+            <p class="text-dim mb">Descarga un Excel con las comisiones aprobadas del rango de fechas seleccionado.</p>
             <div class="form-group">
-              <label>Mes a certificar</label>
-              <select id="acMesSel"></select>
+              <label>Paquete</label>
+              <div id="acPaqueteGroup" style="display:flex;gap:12px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                  <input type="radio" name="acPaquete" value="nc" checked> Norte + Centro
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                  <input type="radio" name="acPaquete" value="rgl"> Río Gallegos
+                </label>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fecha desde</label>
+                <input type="date" id="acFechaDesde">
+              </div>
+              <div class="form-group">
+                <label>Fecha hasta</label>
+                <input type="date" id="acFechaHasta">
+              </div>
             </div>
             <button class="btn btn-primary btn-block" onclick="descargarCertificacion()" id="btnCertif">
               📥 Descargar Excel
@@ -1651,7 +1668,6 @@ function llenarSelectMeses(selectId, mesDefault) {
     if (selectId === "aMesSel") cargarDashboard();
     if (selectId === "apMesSel") cargarPendientes();
     if (selectId === "avMesSel") cargarVentasAdmin();
-    if (selectId === "acMesSel") {}
   };
 }
 
@@ -1867,8 +1883,6 @@ async function initAdmin() {
   llenarSelectMeses("aMesSel", state.mesActualNombre);
   llenarSelectMeses("apMesSel", state.mesActualNombre);
   llenarSelectMeses("avMesSel", state.mesActualNombre);
-  llenarSelectMeses("acMesSel", state.mesActualNombre);
-
   // Nombre y rol en header mobile y sidebar desktop
   const headerUser = $("adminHeaderUser");
   if (headerUser) headerUser.textContent = state.usuario.nombre.toUpperCase();
@@ -1883,6 +1897,32 @@ async function initAdmin() {
 
   setupAdminLayout();
   setupBottomNav();
+
+  // Defaults certificación: desde el 1 del mes actual hasta hoy
+  const hoy = new Date();
+  const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const toISO = d => d.toISOString().split("T")[0];
+  const fdEl = $("acFechaDesde");
+  const fhEl = $("acFechaHasta");
+  if (fdEl && !fdEl.value) fdEl.value = toISO(primerDiaMes);
+  if (fhEl && !fhEl.value) fhEl.value = toISO(hoy);
+
+  // Visibilidad selector paquete: solo si el usuario tiene acceso a múltiples zonas
+  const zonasUsuario = state.usuario.zonas || [];
+  const tieneRgl = zonasUsuario.includes("rgl");
+  const tieneNC  = zonasUsuario.some(z => z !== "rgl");
+  const paqueteGroup = $("acPaqueteGroup");
+  if (paqueteGroup) {
+    if (tieneRgl && tieneNC) {
+      paqueteGroup.style.display = "flex";
+    } else {
+      paqueteGroup.style.display = "none";
+      const defaultPaq = tieneRgl ? "rgl" : "nc";
+      const radio = document.querySelector(`input[name="acPaquete"][value="${defaultPaq}"]`);
+      if (radio) radio.checked = true;
+    }
+  }
+
   irAdmin("aDashboard");
 }
 
@@ -2356,9 +2396,9 @@ async function cargarPendientes() {
           </div>
           <div class="vc-actions">
             <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'pendientes')">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','pendientes')">Borrar</button>
-            <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${mes}")'>Rechazar</button>
-            <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${mes}")'>Aprobar</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','pendientes','${v.planilla}')">Borrar</button>
+            <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${mes}", "${v.planilla}")'>Rechazar</button>
+            <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${mes}", "${v.planilla}")'>Aprobar</button>
           </div>
         </div>
       </div>`;
@@ -2366,7 +2406,7 @@ async function cargarPendientes() {
   cont.innerHTML = html;
 }
 
-async function aprobarVenta(fila, mes) {
+async function aprobarVenta(fila, mes, planilla) {
   abrirModal({
     titulo: "Aprobar venta",
     contenido: "<p>Esta acción aprueba la venta y todas sus cuotas hermanas (si las hay).</p>",
@@ -2375,7 +2415,7 @@ async function aprobarVenta(fila, mes) {
       { txt: "Aprobar", clase: "btn-success", accion: async () => {
         cerrarModal();
         toast("Aprobando...", "info");
-        const r = await api("aprobarVenta", { fila, mes });
+        const r = await api("aprobarVenta", { fila, mes, planilla });
         if (r.ok) {
           let msg = "Venta aprobada";
           if (r.cuotasHermanasActualizadas > 0) {
@@ -2389,7 +2429,7 @@ async function aprobarVenta(fila, mes) {
   });
 }
 
-async function rechazarVenta(fila, mes) {
+async function rechazarVenta(fila, mes, planilla) {
   abrirModal({
     titulo: "Rechazar venta",
     contenido: `<p>Motivo del rechazo (lo verá el vendedor):</p>
@@ -2401,7 +2441,7 @@ async function rechazarVenta(fila, mes) {
         if (!motivo) { toast("Tenés que poner un motivo", "err"); return; }
         cerrarModal();
         toast("Rechazando...", "info");
-        const r = await api("rechazarVenta", { fila, mes, motivo });
+        const r = await api("rechazarVenta", { fila, mes, motivo, planilla });
         if (r.ok) {
           toast("Venta rechazada", "ok");
           cargarPendientes();
@@ -2483,7 +2523,7 @@ function filtrarYRenderVentas() {
         <td>${d[16] ? '<a href="' + d[16] + '" target="_blank">🔗</a>' : "—"}</td>
         <td style="white-space:nowrap">
           <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
-          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas')">Borrar</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
         </td>
       </tr>`;
     });
@@ -2512,7 +2552,7 @@ function filtrarYRenderVentas() {
         </div>
         <div class="vc-actions" style="margin-top:8px;justify-content:flex-end">
           <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas')">Borrar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
         </div>
       </div>`;
     });
@@ -2869,13 +2909,28 @@ async function darDeBajaVendedor(param) {
 // ============================================================
 // ADMIN - CERTIFICACIÓN
 // ============================================================
+function isoToDDMMYYYY(iso) {
+  if (!iso) return "";
+  const p = iso.split("-");
+  if (p.length !== 3) return iso;
+  return p[2] + "/" + p[1] + "/" + p[0];
+}
+
 async function descargarCertificacion() {
-  const mes = $("acMesSel").value || state.mesActualNombre;
+  const paquete    = (document.querySelector('input[name="acPaquete"]:checked') || {}).value || "nc";
+  const fechaDesde = isoToDDMMYYYY($("acFechaDesde").value);
+  const fechaHasta = isoToDDMMYYYY($("acFechaHasta").value);
+
+  if (!fechaDesde || !fechaHasta) {
+    toast("Seleccioná fecha desde y hasta", "err");
+    return;
+  }
+
   const btn = $("btnCertif");
   btn.disabled = true;
   btn.textContent = "Generando...";
 
-  const r = await api("descargarCertificacion", { mes });
+  const r = await api("descargarCertificacion", { paquete, fechaDesde, fechaHasta });
   btn.disabled = false;
   btn.textContent = "📥 Descargar Excel";
 
@@ -2884,7 +2939,6 @@ async function descargarCertificacion() {
     return;
   }
 
-  // Decodificar base64 a blob y forzar descarga
   const byteString = atob(r.base64);
   const ab = new ArrayBuffer(byteString.length);
   const ia = new Uint8Array(ab);
@@ -2893,7 +2947,7 @@ async function descargarCertificacion() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = r.nombre || ("Certificacion_" + mes + ".xlsx");
+  a.download = r.nombre || ("Certificacion_" + paquete.toUpperCase() + ".xlsx");
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2912,9 +2966,9 @@ function ddmmyyyyToISO(s) {
   return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
 }
 
-async function eliminarVentaAdmin(fila, mes, fuente) {
+async function eliminarVentaAdmin(fila, mes, fuente, planilla) {
   if (!confirm("¿Eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.")) return;
-  const r = await api("eliminarVenta", { fila, mes });
+  const r = await api("eliminarVenta", { fila, mes, planilla });
   if (r.ok) {
     toast("Venta eliminada", "ok");
     if (fuente === "pendientes") cargarPendientes();
@@ -3013,7 +3067,8 @@ async function editarVentaAdmin(idx, fuente) {
           precioVenta: Number($("eaPrecio").value) || 0,
           rol: "admin",
           fila: item.fila,
-          mes
+          mes,
+          planilla: item.planilla
         };
         if (escId) datos.escenarioId = escId;
         cerrarModal();
