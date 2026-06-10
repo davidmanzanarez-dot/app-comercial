@@ -988,7 +988,10 @@ tbody tr:hover{background:var(--accent-soft)}
               <input type="date" id="apFechaHasta">
             </div>
           </div>
-          <div style="margin-bottom:16px">
+          <div class="mes-selector" style="margin-bottom:16px">
+            <select id="apLocalidadFil" onchange="filtrarYRenderPendientes()" style="flex:1;min-width:160px;padding:8px 10px;font-size:13px">
+              <option value="">Todas las localidades</option>
+            </select>
             <button class="btn btn-secondary btn-sm" onclick="cargarPendientes()">Actualizar</button>
           </div>
           <div id="aListaPendientes">
@@ -1010,6 +1013,9 @@ tbody tr:hover{background:var(--accent-soft)}
             </select>
             <select id="aVentasVendedorFil" onchange="filtrarYRenderVentas()" style="flex:1;min-width:140px;padding:8px 10px;font-size:13px">
               <option value="">Todos los vendedores</option>
+            </select>
+            <select id="aVentasLocalidadFil" onchange="filtrarYRenderVentas()" style="flex:1;min-width:140px;padding:8px 10px;font-size:13px">
+              <option value="">Todas las localidades</option>
             </select>
           </div>
           <div id="aListaVentas">
@@ -2430,14 +2436,48 @@ async function cargarPendientes() {
     numPendLP.classList.toggle("hidden", cnt === 0);
   }
   if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
-  if (!r.ventas.length) {
+
+  state.pendientesAdminCache = r.ventas || [];
+
+  // Poblar filtro de localidad con los valores cargados
+  const locFil = $("apLocalidadFil");
+  if (locFil) {
+    locFil.innerHTML = '<option value="">Todas las localidades</option>';
+    const locSet = new Set(state.pendientesAdminCache.map(v => String(v.datos[2] || "").trim()).filter(Boolean));
+    [...locSet].sort().forEach(loc => {
+      const o = document.createElement("option");
+      o.value = loc; o.textContent = loc;
+      locFil.appendChild(o);
+    });
+    locFil.value = "";
+  }
+
+  filtrarYRenderPendientes();
+}
+
+function filtrarYRenderPendientes() {
+  const cont = $("aListaPendientes");
+  const localidadFil = ($("apLocalidadFil") || {}).value || "";
+  const cache = state.pendientesAdminCache || [];
+
+  if (!cache.length) {
     cont.innerHTML = '<div class="empty"><span class="icon">✅</span>Sin pendientes</div>';
     return;
   }
 
-  state.pendientesAdminRows = r.ventas;
+  const filas = cache
+    .map((v, idx) => ({ v, idx }))
+    .filter(({v}) => !localidadFil || String(v.datos[2] || "").trim() === localidadFil);
+
+  if (!filas.length) {
+    cont.innerHTML = '<div class="empty"><span class="icon">📭</span>Sin resultados</div>';
+    return;
+  }
+
+  state.pendientesAdminRows = filas.map(({v}) => v);
+
   let html = "";
-  r.ventas.forEach((v, idx) => {
+  filas.forEach(({v, idx}) => {
     const d = v.datos;
     html += `
       <div class="venta-card pendiente">
@@ -2530,24 +2570,33 @@ async function cargarVentasAdmin() {
   cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
   // Reiniciar filtros al cambiar el mes
-  const estFil = $("aVentasEstadoFil");
+  const estFil  = $("aVentasEstadoFil");
   const vendFil = $("aVentasVendedorFil");
-  if (estFil) estFil.value = "";
-  if (vendFil) vendFil.innerHTML = '<option value="">Todos los vendedores</option>';
+  const locFil  = $("aVentasLocalidadFil");
+  if (estFil)  estFil.value = "";
+  if (vendFil) vendFil.innerHTML  = '<option value="">Todos los vendedores</option>';
+  if (locFil)  locFil.innerHTML   = '<option value="">Todas las localidades</option>';
 
   const r = await api("obtenerVentas", { mes, zonas: state.usuario ? state.usuario.zonas : [] });
   if (!r.ok) { cont.innerHTML = '<div class="empty">Error</div>'; return; }
 
   state.ventasAdminCache = r.ventas || [];
 
-  // Poblar filtro de vendedores con los del mes cargado
+  // Poblar filtros de vendedor y localidad con los valores del mes cargado
   if (vendFil) {
     const vendSet = new Set(state.ventasAdminCache.map(v => String(v.datos[3] || "")).filter(Boolean));
     [...vendSet].sort().forEach(nombre => {
       const o = document.createElement("option");
-      o.value = nombre;
-      o.textContent = nombre;
+      o.value = nombre; o.textContent = nombre;
       vendFil.appendChild(o);
+    });
+  }
+  if (locFil) {
+    const locSet = new Set(state.ventasAdminCache.map(v => String(v.datos[2] || "").trim()).filter(Boolean));
+    [...locSet].sort().forEach(loc => {
+      const o = document.createElement("option");
+      o.value = loc; o.textContent = loc;
+      locFil.appendChild(o);
     });
   }
 
@@ -2556,13 +2605,15 @@ async function cargarVentasAdmin() {
 
 function filtrarYRenderVentas() {
   const mes = $("avMesSel").value || state.mesActualNombre;
-  const estadoFil = $("aVentasEstadoFil") ? $("aVentasEstadoFil").value : "";
-  const vendedorFil = $("aVentasVendedorFil") ? $("aVentasVendedorFil").value : "";
+  const estadoFil    = $("aVentasEstadoFil")    ? $("aVentasEstadoFil").value    : "";
+  const vendedorFil  = $("aVentasVendedorFil")  ? $("aVentasVendedorFil").value  : "";
+  const localidadFil = $("aVentasLocalidadFil") ? $("aVentasLocalidadFil").value : "";
   const cont = $("aListaVentas");
 
   let ventas = state.ventasAdminCache || [];
-  if (estadoFil) ventas = ventas.filter(v => String(v.datos[13] || "").trim() === estadoFil);
-  if (vendedorFil) ventas = ventas.filter(v => String(v.datos[3] || "") === vendedorFil);
+  if (estadoFil)    ventas = ventas.filter(v => String(v.datos[13] || "").trim() === estadoFil);
+  if (vendedorFil)  ventas = ventas.filter(v => String(v.datos[3]  || "") === vendedorFil);
+  if (localidadFil) ventas = ventas.filter(v => String(v.datos[2]  || "").trim() === localidadFil);
 
   if (!ventas.length) {
     cont.innerHTML = '<div class="empty"><span class="icon">📭</span>Sin resultados</div>';
