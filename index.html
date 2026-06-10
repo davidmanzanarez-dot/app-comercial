@@ -45,6 +45,32 @@
   --shadow-1:0 1px 3px rgba(26,26,26,.06);
   --shadow-2:0 4px 14px rgba(26,26,26,.10);
 }
+body.dark-mode{
+  --bg:#0f1520;
+  --surface:#16202e;
+  --surface-2:#1c2a3a;
+  --surface-3:#192638;
+  --ink:#e2dfd8;
+  --ink-2:#a8a49d;
+  --border:#263547;
+  --border-strong:#344d63;
+  --accent:#6b9fd4;
+  --accent-2:#8ab4dc;
+  --accent-dark:#4d80b0;
+  --accent-soft:#162030;
+  --text:#e2dfd8;
+  --text-dim:#9a9790;
+  --text-mute:#6a6760;
+  --ok:#4cae82;
+  --ok-soft:#122a1c;
+  --warn:#e0874a;
+  --warn-soft:#2d1f0e;
+  --err:#d4635e;
+  --err-soft:#2d1315;
+  --pending:#e0874a;
+  --shadow-1:0 1px 3px rgba(0,0,0,.35);
+  --shadow-2:0 4px 14px rgba(0,0,0,.45);
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
@@ -96,6 +122,12 @@ body{
   background:transparent;color:var(--accent);cursor:pointer;transition:.15s;
 }
 .btn-logout:hover{background:var(--accent-soft)}
+.btn-theme{
+  font-family:var(--sans);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+  padding:7px 14px;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:transparent;color:var(--text-dim);cursor:pointer;transition:.15s;
+}
+.btn-theme:hover{background:var(--accent-soft);color:var(--ink)}
 
 /* ============================================================
    PAGE TITLE
@@ -445,17 +477,6 @@ tbody tr:hover{background:var(--accent-soft)}
 
 
 /* ============================================================
-   MODO PRESENTACIÓN
-   ============================================================ */
-body.presentacion .sidebar,
-body.presentacion .bottomnav,
-body.presentacion .header,
-body.presentacion .mes-selector,
-body.presentacion .analisis-detallado{display:none !important}
-body.presentacion .content{padding:24px 32px;max-width:none}
-body.presentacion .hero-value{font-size:54px}
-
-/* ============================================================
    VENTA CARD
    ============================================================ */
 .venta-card{
@@ -538,6 +559,7 @@ body.presentacion .hero-value{font-size:54px}
 </style>
 </head>
 <body>
+<script>(function(){if(localStorage.getItem('theme')==='dark')document.body.classList.add('dark-mode');}());</script>
 
 <!-- ============================================================
      PANTALLA LOGIN
@@ -585,6 +607,7 @@ body.presentacion .hero-value{font-size:54px}
         <button data-nav="vMisRegistros">▦ Mis registros</button>
       </nav>
       <div class="sidebar-foot">
+        <button class="btn-theme" style="width:100%;margin-bottom:6px" onclick="toggleTheme()">☾ Oscuro</button>
         <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
@@ -596,6 +619,7 @@ body.presentacion .hero-value{font-size:54px}
         </div>
         <div class="flex-gap">
           <span class="header-user" id="userBadgeV"></span>
+          <button class="btn-theme" onclick="toggleTheme()" title="Cambiar tema">☾</button>
           <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
         </div>
       </div>
@@ -809,7 +833,7 @@ body.presentacion .hero-value{font-size:54px}
         <button data-anav="aPendientes">⏳ Pendientes <span id="adNumPend" class="estado-badge pendiente hidden" style="margin-left:auto">0</span></button>
         <button data-anav="aVentas">💼 Ventas</button>
         <button data-anav="aEquipos">📦 Catálogo</button>
-        <button data-anav="aVendedores">👤 Vendedores</button>
+        <button data-anav="aVendedores">👤 Usuarios</button>
         <button data-anav="aCertificacion">📥 Certificación</button>
       </nav>
       <div class="sidebar-foot">
@@ -817,7 +841,8 @@ body.presentacion .hero-value{font-size:54px}
           <span class="sidebar-user-name" id="adminSidebarNombre"></span>
           <span class="rol-badge" id="adminSidebarRol"></span>
         </div>
-        <button class="btn-logout" style="width:100%;margin-top:6px" onclick="cerrarSesion()">Cerrar sesión</button>
+        <button class="btn-theme" style="width:100%;margin-top:6px;margin-bottom:6px" onclick="toggleTheme()">☾ Oscuro</button>
+        <button class="btn-logout" style="width:100%" onclick="cerrarSesion()">Cerrar sesión</button>
       </div>
     </aside>
 
@@ -828,6 +853,7 @@ body.presentacion .hero-value{font-size:54px}
         </div>
         <div class="flex-gap">
           <span class="header-user" id="adminHeaderUser"></span>
+          <button class="btn-theme" onclick="toggleTheme()" title="Cambiar tema">☾</button>
           <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
         </div>
       </div>
@@ -837,7 +863,6 @@ body.presentacion .hero-value{font-size:54px}
         <div id="aDashboard" class="a-page">
           <div class="page-title">
             <span class="accent-bar"></span><span>Dashboard</span>
-            <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="togglePresentacion()" id="btnPresentacion">▣ Presentación</button>
           </div>
 
           <div class="mes-selector">
@@ -953,8 +978,17 @@ body.presentacion .hero-value{font-size:54px}
         <!-- PENDIENTES -->
         <div id="aPendientes" class="a-page hidden">
           <div class="page-title"><span class="accent-bar"></span><span>Pendientes de aprobación</span></div>
-          <div class="mes-selector">
-            <select id="apMesSel"></select>
+          <div class="form-row" style="margin-bottom:4px">
+            <div class="form-group">
+              <label>Fecha desde</label>
+              <input type="date" id="apFechaDesde">
+            </div>
+            <div class="form-group">
+              <label>Fecha hasta</label>
+              <input type="date" id="apFechaHasta">
+            </div>
+          </div>
+          <div style="margin-bottom:16px">
             <button class="btn btn-secondary btn-sm" onclick="cargarPendientes()">Actualizar</button>
           </div>
           <div id="aListaPendientes">
@@ -994,8 +1028,8 @@ body.presentacion .hero-value{font-size:54px}
 
         <!-- VENDEDORES -->
         <div id="aVendedores" class="a-page hidden">
-          <div class="page-title"><span class="accent-bar"></span><span>Vendedores</span></div>
-          <button class="btn btn-primary btn-block mb" onclick="abrirModalVendedor(null)">➕ Agregar vendedor</button>
+          <div class="page-title"><span class="accent-bar"></span><span>Usuarios</span></div>
+          <button class="btn btn-primary btn-block mb" onclick="abrirModalVendedor(null)">➕ Agregar usuario</button>
           <div id="aListaVendedores">
             <div class="loader"><div class="spinner"></div></div>
           </div>
@@ -1011,10 +1045,10 @@ body.presentacion .hero-value{font-size:54px}
               <label>Paquete</label>
               <div id="acPaqueteGroup" style="display:flex;gap:12px;flex-wrap:wrap">
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-                  <input type="radio" name="acPaquete" value="nc" checked> Norte + Centro
+                  <input type="radio" name="acPaquete" value="nc" checked> SS ZN-ZC
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-                  <input type="radio" name="acPaquete" value="rgl"> Río Gallegos
+                  <input type="radio" name="acPaquete" value="rgl"> SS RGL
                 </label>
               </div>
             </div>
@@ -1051,7 +1085,7 @@ body.presentacion .hero-value{font-size:54px}
           <span class="icon">📦</span>Catálogo
         </button>
         <button data-anav="aVendedores">
-          <span class="icon">👤</span>Vendedores
+          <span class="icon">👤</span>Usuarios
         </button>
         <button data-anav="aCertificacion">
           <span class="icon">📥</span>Certif.
@@ -1068,6 +1102,7 @@ body.presentacion .hero-value{font-size:54px}
 <div id="modalWrap"></div>
 
 <script>
+_actualizarBotonesTheme(document.body.classList.contains("dark-mode"));
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
@@ -1639,8 +1674,10 @@ async function enviarVenta() {
   };
   if (escenarioId) datos.escenarioId = escenarioId;
 
-  toast("Registrando venta...", "info");
+  const btn = $("vCargar").querySelector('button[onclick="enviarVenta()"]');
+  const orig = _btnBusy(btn);
   const r = await api("registrarVenta", datos);
+  _btnReady(btn, orig);
   if (r.ok) {
     toast(`Venta registrada. Comisión total: ${fmtMoney(r.comisionTotal)} (${r.cantidadCuotas} cuota/s)`, "ok", 4500);
     prepararFormVenta();
@@ -1666,7 +1703,6 @@ function llenarSelectMeses(selectId, mesDefault) {
   sel.onchange = () => {
     if (selectId === "vMesSel") cargarMisRegistros();
     if (selectId === "aMesSel") cargarDashboard();
-    if (selectId === "apMesSel") cargarPendientes();
     if (selectId === "avMesSel") cargarVentasAdmin();
   };
 }
@@ -1714,7 +1750,7 @@ async function cargarMisRegistros() {
     if (principal.estado === "Rechazada" || principal.estado === "Pendiente") {
       acciones = `
         <button class="btn btn-secondary btn-sm" onclick='editarRegistroVendedor(${JSON.stringify(principal).replace(/'/g, "&apos;")}, "${mes}")'>Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="borrarRegistroVendedor(${principal.fila},'${mes}')">Borrar</button>
+        <button class="btn btn-danger btn-sm" onclick="borrarRegistroVendedor(this,${principal.fila},'${mes}')">Borrar</button>
       `;
     }
 
@@ -1815,18 +1851,19 @@ async function enviarEdicion(fila, mes) {
   if (escenarioId) datos.escenarioId = escenarioId;
   if (!datos.link) return toast("El link del ticket es obligatorio", "err");
 
-  toast("Actualizando...", "info");
+  const btn = $("vCargar").querySelector('button[onclick^="enviarEdicion"]');
+  const orig = _btnBusy(btn);
   const r = await api("editarVenta", datos);
   if (r.ok) {
     toast("Venta actualizada. Vuelve a Pendiente.", "ok");
     irA("vMisRegistros");
-    // restaurar botón
-    const btn = $("vCargar").querySelector('button[onclick^="enviarEdicion"]');
     if (btn) {
+      btn.disabled = false;
       btn.textContent = "Registrar venta";
       btn.setAttribute("onclick", "enviarVenta()");
     }
   } else {
+    _btnReady(btn, orig);
     toast("Error: " + (r.error || ""), "err");
   }
 }
@@ -1851,7 +1888,7 @@ function abrirModal({ titulo, contenido, acciones }) {
   wrap.querySelectorAll("button[data-i]").forEach(b => {
     b.onclick = () => {
       const a = acciones[Number(b.dataset.i)];
-      if (a && a.accion) a.accion();
+      if (a && a.accion) a.accion(b);
     };
   });
 }
@@ -1881,7 +1918,6 @@ async function initAdmin() {
   }
 
   llenarSelectMeses("aMesSel", state.mesActualNombre);
-  llenarSelectMeses("apMesSel", state.mesActualNombre);
   llenarSelectMeses("avMesSel", state.mesActualNombre);
   // Nombre y rol en header mobile y sidebar desktop
   const headerUser = $("adminHeaderUser");
@@ -1898,7 +1934,7 @@ async function initAdmin() {
   setupAdminLayout();
   setupBottomNav();
 
-  // Defaults certificación: desde el 1 del mes actual hasta hoy
+  // Defaults fechas: desde el 1 del mes actual hasta hoy
   const hoy = new Date();
   const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const toISO = d => d.toISOString().split("T")[0];
@@ -1906,6 +1942,10 @@ async function initAdmin() {
   const fhEl = $("acFechaHasta");
   if (fdEl && !fdEl.value) fdEl.value = toISO(primerDiaMes);
   if (fhEl && !fhEl.value) fhEl.value = toISO(hoy);
+  const apFdEl = $("apFechaDesde");
+  const apFhEl = $("apFechaHasta");
+  if (apFdEl && !apFdEl.value) apFdEl.value = toISO(primerDiaMes);
+  if (apFhEl && !apFhEl.value) apFhEl.value = toISO(hoy);
 
   // Visibilidad selector paquete: solo si el usuario tiene acceso a múltiples zonas
   const zonasUsuario = state.usuario.zonas || [];
@@ -2277,8 +2317,9 @@ async function cargarRankingVendedor() {
   const cont = $("vRankingLista");
   if (!cont) return;
 
+  const zonas = state.usuario ? (state.usuario.zonas || []) : [];
   const [rActual, mesesR] = await Promise.all([
-    api("obtenerRanking", { mes: state.mesActualNombre }),
+    api("obtenerRanking", { mes: state.mesActualNombre, zonas }),
     api("obtenerMesesDisponibles")
   ]);
 
@@ -2287,7 +2328,7 @@ async function cargarRankingVendedor() {
   if (mesesR.ok && mesesR.meses && mesesR.meses.length > 1) {
     const mesAnt = mesesR.meses.find(m => m !== state.mesActualNombre);
     if (mesAnt) {
-      const rAnt = await api("obtenerRanking", { mes: mesAnt });
+      const rAnt = await api("obtenerRanking", { mes: mesAnt, zonas });
       if (rAnt.ok) rankingAnt = rAnt.ranking || [];
     }
   }
@@ -2334,13 +2375,35 @@ async function cargarRankingVendedor() {
 }
 
 // ============================================================
-// MODO PRESENTACIÓN
+// TEMA OSCURO / CLARO
 // ============================================================
-function togglePresentacion() {
-  document.body.classList.toggle("presentacion");
-  const activo = document.body.classList.contains("presentacion");
-  const btn = $("btnPresentacion");
-  if (btn) btn.textContent = activo ? "✕ Salir" : "▣ Presentación";
+function toggleTheme() {
+  const dark = document.body.classList.toggle("dark-mode");
+  localStorage.setItem("theme", dark ? "dark" : "light");
+  _actualizarBotonesTheme(dark);
+}
+
+function _btnBusy(btn) {
+  if (!btn) return "";
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Procesando...";
+  return orig;
+}
+function _btnReady(btn, orig) {
+  if (!btn) return;
+  btn.disabled = false;
+  if (orig !== undefined) btn.textContent = orig;
+}
+
+function _actualizarBotonesTheme(dark) {
+  document.querySelectorAll(".btn-theme").forEach(function(btn) {
+    if (btn.style.width === "100%") {
+      btn.textContent = dark ? "☀ Claro" : "☾ Oscuro";
+    } else {
+      btn.textContent = dark ? "☀" : "☾";
+    }
+  });
 }
 
 // Helper para escapar HTML en nombres
@@ -2352,11 +2415,14 @@ function escapeHtml(s) {
 // ADMIN - PENDIENTES
 // ============================================================
 async function cargarPendientes() {
-  const mes = $("apMesSel").value || state.mesActualNombre;
+  const fechaDesde = isoToDDMMYYYY(($("apFechaDesde") || {}).value || "");
+  const fechaHasta = isoToDDMMYYYY(($("apFechaHasta") || {}).value || "");
   const cont = $("aListaPendientes");
   cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
-  const r = await api("obtenerPendientes", { mes, zonas: state.usuario ? state.usuario.zonas : [] });
+  const params = { zonas: state.usuario ? state.usuario.zonas : [] };
+  if (fechaDesde && fechaHasta) { params.fechaDesde = fechaDesde; params.fechaHasta = fechaHasta; }
+  const r = await api("obtenerPendientes", params);
   const numPendLP = $("adNumPend");
   if (numPendLP) {
     const cnt = r.ok && r.ventas ? r.ventas.length : 0;
@@ -2396,9 +2462,9 @@ async function cargarPendientes() {
           </div>
           <div class="vc-actions">
             <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'pendientes')">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','pendientes','${v.planilla}')">Borrar</button>
-            <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${mes}", "${v.planilla}")'>Rechazar</button>
-            <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${mes}", "${v.planilla}")'>Aprobar</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(this,${v.fila},'${v.mes}','pendientes','${v.planilla}')">Borrar</button>
+            <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${v.mes}", "${v.planilla}")'>Rechazar</button>
+            <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${v.mes}", "${v.planilla}")'>Aprobar</button>
           </div>
         </div>
       </div>`;
@@ -2412,18 +2478,19 @@ async function aprobarVenta(fila, mes, planilla) {
     contenido: "<p>Esta acción aprueba la venta y todas sus cuotas hermanas (si las hay).</p>",
     acciones: [
       { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: "Aprobar", clase: "btn-success", accion: async () => {
-        cerrarModal();
-        toast("Aprobando...", "info");
+      { txt: "Aprobar", clase: "btn-success", accion: async (btn) => {
+        const orig = _btnBusy(btn);
         const r = await api("aprobarVenta", { fila, mes, planilla });
         if (r.ok) {
+          cerrarModal();
           let msg = "Venta aprobada";
-          if (r.cuotasHermanasActualizadas > 0) {
-            msg += ` (+ ${r.cuotasHermanasActualizadas} cuota/s hermana/s)`;
-          }
+          if (r.cuotasHermanasActualizadas > 0) msg += ` (+ ${r.cuotasHermanasActualizadas} cuota/s hermana/s)`;
           toast(msg, "ok");
           cargarPendientes();
-        } else toast("Error: " + (r.error || ""), "err");
+        } else {
+          _btnReady(btn, orig);
+          toast("Error: " + (r.error || ""), "err");
+        }
       }}
     ]
   });
@@ -2436,16 +2503,19 @@ async function rechazarVenta(fila, mes, planilla) {
       <textarea id="motivoRechazo" rows="3" style="width:100%;margin-top:8px;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text)"></textarea>`,
     acciones: [
       { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: "Rechazar", clase: "btn-danger", accion: async () => {
+      { txt: "Rechazar", clase: "btn-danger", accion: async (btn) => {
         const motivo = $("motivoRechazo").value.trim();
         if (!motivo) { toast("Tenés que poner un motivo", "err"); return; }
-        cerrarModal();
-        toast("Rechazando...", "info");
+        const orig = _btnBusy(btn);
         const r = await api("rechazarVenta", { fila, mes, motivo, planilla });
         if (r.ok) {
+          cerrarModal();
           toast("Venta rechazada", "ok");
           cargarPendientes();
-        } else toast("Error: " + (r.error || ""), "err");
+        } else {
+          _btnReady(btn, orig);
+          toast("Error: " + (r.error || ""), "err");
+        }
       }}
     ]
   });
@@ -2523,7 +2593,7 @@ function filtrarYRenderVentas() {
         <td>${d[16] ? '<a href="' + d[16] + '" target="_blank">🔗</a>' : "—"}</td>
         <td style="white-space:nowrap">
           <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
-          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarVentaAdmin(this,${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
         </td>
       </tr>`;
     });
@@ -2552,7 +2622,7 @@ function filtrarYRenderVentas() {
         </div>
         <div class="vc-actions" style="margin-top:8px;justify-content:flex-end">
           <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(this,${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
         </div>
       </div>`;
     });
@@ -2851,7 +2921,7 @@ function abrirModalVendedor(param) {
       '</div>',
     acciones: [
       { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: esEdicion ? "Guardar" : "Crear", clase: "btn-primary", accion: async () => {
+      { txt: esEdicion ? "Guardar" : "Crear", clase: "btn-primary", accion: async (btn) => {
         const nombre    = $("vndNombre").value.trim();
         const pin       = $("vndPin").value.trim();
         const localidad = $("vndLocalidad").value;
@@ -2870,12 +2940,14 @@ function abrirModalVendedor(param) {
         };
         if (esEdicion) datos.id = vendedor.id;
 
+        const orig = _btnBusy(btn);
         const r = await api("gestionarVendedor", datos);
-        cerrarModal();
         if (r.ok) {
+          cerrarModal();
           toast(esEdicion ? "Vendedor actualizado" : "Vendedor creado", "ok");
           cargarVendedoresAdmin();
         } else {
+          _btnReady(btn, orig);
           toast("Error: " + (r.error || ""), "err");
         }
       }}
@@ -2892,13 +2964,15 @@ async function darDeBajaVendedor(param) {
       '<p style="margin-top:8px;font-size:13px;color:var(--text-dim)">El usuario no podrá iniciar sesión. Los registros de ventas se conservan.</p>',
     acciones: [
       { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: "Dar de baja", clase: "btn-danger", accion: async () => {
-        cerrarModal();
+      { txt: "Dar de baja", clase: "btn-danger", accion: async (btn) => {
+        const orig = _btnBusy(btn);
         const r = await api("gestionarVendedor", { operacion: "baja", id: v.id });
         if (r.ok) {
+          cerrarModal();
           toast(escapeHtml(v.nombre) + " dado de baja", "ok");
           cargarVendedoresAdmin();
         } else {
+          _btnReady(btn, orig);
           toast("Error: " + (r.error || ""), "err");
         }
       }}
@@ -2928,7 +3002,7 @@ async function descargarCertificacion() {
 
   const btn = $("btnCertif");
   btn.disabled = true;
-  btn.textContent = "Generando...";
+  btn.textContent = "Procesando...";
 
   const r = await api("descargarCertificacion", { paquete, fechaDesde, fechaHasta });
   btn.disabled = false;
@@ -2966,14 +3040,16 @@ function ddmmyyyyToISO(s) {
   return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
 }
 
-async function eliminarVentaAdmin(fila, mes, fuente, planilla) {
+async function eliminarVentaAdmin(btn, fila, mes, fuente, planilla) {
   if (!confirm("¿Eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.")) return;
+  const orig = _btnBusy(btn);
   const r = await api("eliminarVenta", { fila, mes, planilla });
   if (r.ok) {
     toast("Venta eliminada", "ok");
     if (fuente === "pendientes") cargarPendientes();
     else cargarVentasAdmin();
   } else {
+    _btnReady(btn, orig);
     toast("Error: " + (r.error || ""), "err");
   }
 }
@@ -2984,7 +3060,7 @@ async function editarVentaAdmin(idx, fuente) {
   const item = rows[idx];
   const d = item.datos;
   const mes = fuente === "pendientes"
-    ? ($("apMesSel").value || state.mesActualNombre)
+    ? (item.mes || state.mesActualNombre)
     : ($("avMesSel").value || state.mesActualNombre);
 
   const nombreBase = String(d[5]).split(" · ")[0].trim();
@@ -3045,7 +3121,7 @@ async function editarVentaAdmin(idx, fuente) {
     `,
     acciones: [
       { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
-      { txt: "Guardar", clase: "btn-primary", accion: async () => {
+      { txt: "Guardar", clase: "btn-primary", accion: async (btn) => {
         const link = $("eaLink").value.trim();
         const fechaISO = $("eaFecha").value;
         const eqId = $("eaEquipo").value;
@@ -3071,14 +3147,15 @@ async function editarVentaAdmin(idx, fuente) {
           planilla: item.planilla
         };
         if (escId) datos.escenarioId = escId;
-        cerrarModal();
-        toast("Guardando...", "info");
+        const orig = _btnBusy(btn);
         const r = await api("editarVenta", datos);
         if (r.ok) {
+          cerrarModal();
           toast("Venta actualizada", "ok");
           if (fuente === "pendientes") cargarPendientes();
           else cargarVentasAdmin();
         } else {
+          _btnReady(btn, orig);
           toast("Error: " + (r.error || ""), "err");
         }
       }}
@@ -3093,13 +3170,15 @@ function editarRegistroVendedor(venta, mes) {
   editarVentaModal(venta, mes);
 }
 
-async function borrarRegistroVendedor(fila, mes) {
+async function borrarRegistroVendedor(btn, fila, mes) {
   if (!confirm("¿Eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.")) return;
+  const orig = _btnBusy(btn);
   const r = await api("eliminarVenta", { fila, mes });
   if (r.ok) {
     toast("Venta eliminada", "ok");
     cargarMisRegistros();
   } else {
+    _btnReady(btn, orig);
     toast("Error: " + (r.error || ""), "err");
   }
 }
