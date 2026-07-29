@@ -789,6 +789,10 @@ tbody tr:hover{background:var(--accent-soft)}
         <button class="btn btn-secondary btn-sm" onclick="cargarMisRegistros()">Actualizar</button>
       </div>
 
+      <div class="form-group">
+        <input type="text" id="vRegBuscarCliente" placeholder="🔎 Buscar por N° de cliente" oninput="renderMisRegistros()">
+      </div>
+
       <div id="vListaRegistros">
         <div class="loader"><div class="spinner"></div></div>
       </div>
@@ -1124,7 +1128,9 @@ const state = {
   mesActual: "",
   pinBuffer: "",
   mesActualNombre: "",
-  tipoVentaActual: "Equipo"  // tipo seleccionado en el form (Equipo o Plan)
+  tipoVentaActual: "Equipo",  // tipo seleccionado en el form (Equipo o Plan)
+  misRegistrosReqId: 0,       // token para descartar respuestas de "Mis registros" fuera de orden
+  misRegistrosVentas: []      // últimas ventas cargadas, para filtrar por cliente sin re-consultar
 };
 
 // ============================================================
@@ -1715,6 +1721,7 @@ function llenarSelectMeses(selectId, mesDefault) {
 
 async function cargarMisRegistros() {
   const mes = $("vMesSel").value || state.mesActualNombre;
+  const miPeticion = ++state.misRegistrosReqId;
   const cont = $("vListaRegistros");
   cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
@@ -1723,15 +1730,35 @@ async function cargarMisRegistros() {
     mes
   });
 
+  // Si mientras esperábamos la respuesta el vendedor ya cambió de mes,
+  // esta respuesta quedó vieja: se descarta para no pisar la vista actual.
+  if (miPeticion !== state.misRegistrosReqId) return;
+
   if (!r.ok) { cont.innerHTML = '<div class="empty">Error: ' + (r.error || "") + '</div>'; return; }
-  if (!r.ventas || r.ventas.length === 0) {
-    cont.innerHTML = '<div class="empty"><span class="icon">📭</span>Sin registros en este mes</div>';
+
+  state.misRegistrosVentas = r.ventas || [];
+  renderMisRegistros();
+}
+
+function renderMisRegistros() {
+  const cont = $("vListaRegistros");
+  const mes = $("vMesSel").value || state.mesActualNombre;
+  const filtroCliente = ($("vRegBuscarCliente").value || "").trim().toLowerCase();
+
+  let ventas = state.misRegistrosVentas || [];
+  if (filtroCliente) {
+    ventas = ventas.filter(v => String(v.cliente || "").toLowerCase().includes(filtroCliente));
+  }
+
+  if (ventas.length === 0) {
+    cont.innerHTML = '<div class="empty"><span class="icon">📭</span>' +
+      (filtroCliente ? "Sin registros para ese cliente" : "Sin registros en este mes") + '</div>';
     return;
   }
 
   // Agrupar por idVenta (las cuotas hermanas se muestran juntas)
   const grupos = {};
-  r.ventas.forEach(v => {
+  ventas.forEach(v => {
     const k = v.idVenta || ("solo_" + v.fila);
     if (!grupos[k]) grupos[k] = [];
     grupos[k].push(v);
