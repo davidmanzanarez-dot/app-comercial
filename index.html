@@ -784,8 +784,35 @@ tbody tr:hover{background:var(--accent-soft)}
     <div id="vMisRegistros" class="v-page hidden">
       <div class="page-title"><span class="accent-bar"></span><span>Mis registros</span></div>
 
-      <div class="mes-selector">
-        <select id="vMesSel"></select>
+      <div class="vd-rango mb" id="vRegTabs">
+        <button class="active" data-tipo="nueva" onclick="cambiarTipoRegistro('nueva')">Ventas nuevas</button>
+        <button data-tipo="cuota" onclick="cambiarTipoRegistro('cuota')">Cuotas a cobrar</button>
+        <button data-tipo="todas" onclick="cambiarTipoRegistro('todas')">Todas</button>
+      </div>
+
+      <div class="form-row" id="vRegFechasGroup">
+        <div class="form-group">
+          <label>Desde</label>
+          <input type="date" id="vRegFechaDesde">
+        </div>
+        <div class="form-group">
+          <label>Hasta</label>
+          <input type="date" id="vRegFechaHasta">
+        </div>
+      </div>
+
+      <div class="form-row hidden" id="vRegMesesGroup">
+        <div class="form-group">
+          <label>Mes desde</label>
+          <select id="vRegMesDesde"></select>
+        </div>
+        <div class="form-group">
+          <label>Mes hasta</label>
+          <select id="vRegMesHasta"></select>
+        </div>
+      </div>
+
+      <div class="mb">
         <button class="btn btn-secondary btn-sm" onclick="cargarMisRegistros()">Actualizar</button>
       </div>
 
@@ -1130,7 +1157,8 @@ const state = {
   mesActualNombre: "",
   tipoVentaActual: "Equipo",  // tipo seleccionado en el form (Equipo o Plan)
   misRegistrosReqId: 0,       // token para descartar respuestas de "Mis registros" fuera de orden
-  misRegistrosVentas: []      // últimas ventas cargadas, para filtrar por cliente sin re-consultar
+  misRegistrosVentas: [],     // últimas ventas cargadas, para filtrar por cliente sin re-consultar
+  regTipoActivo: "nueva"      // pestaña activa en "Mis registros": nueva | cuota | todas
 };
 
 // ============================================================
@@ -1174,6 +1202,10 @@ function hoyISO() {
   const p = (n) => String(n).padStart(2, "0");
   return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
 }
+function fechaAISO(d) {
+  const p = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
 function ISOaDDMMYYYY(iso) {
   if (!iso) return "";
   const [y, m, d] = iso.split("-");
@@ -1184,6 +1216,26 @@ function nombreMesActual() {
   const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
                  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
   return meses[d.getMonth()] + d.getFullYear();
+}
+
+// Replica en el cliente la regla de ciclo de facturación del backend (cicloDeFecha):
+// día 1-18 => ese mes; día 19+ => mes siguiente. Se usa solo para precargar los
+// valores por defecto de "Mis registros"; el resto de la app sigue usando
+// nombreMesActual() (mes calendario) tal como estaba.
+function cicloActualInfo() {
+  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const hoy = new Date();
+  let mes = hoy.getMonth(), anio = hoy.getFullYear();
+  if (hoy.getDate() >= 19) {
+    mes++;
+    if (mes > 11) { mes = 0; anio++; }
+  }
+  return {
+    nombre: meses[mes] + anio,
+    desde:  new Date(anio, mes - 1, 19),
+    hasta:  new Date(anio, mes, 18)
+  };
 }
 
 // ============================================================
@@ -1341,8 +1393,13 @@ async function initVendedor() {
     state.meses.unshift(state.mesActualNombre);
   }
 
-  // Llenar selects
-  llenarSelectMeses("vMesSel", state.mesActualNombre);
+  // Mis registros: pestaña por defecto "Ventas nuevas" con rango = ciclo de facturación actual
+  const cicloActual = cicloActualInfo();
+  $("vRegFechaDesde").value = fechaAISO(cicloActual.desde);
+  $("vRegFechaHasta").value = fechaAISO(cicloActual.hasta);
+  if (!state.meses.includes(cicloActual.nombre)) state.meses.unshift(cicloActual.nombre);
+  llenarSelectMeses("vRegMesDesde", cicloActual.nombre);
+  llenarSelectMeses("vRegMesHasta", cicloActual.nombre);
 
   // Cargar inicio
   irA("vInicio");
@@ -1387,9 +1444,16 @@ function irA(pageId) {
 // VENDEDOR - INICIO
 // ============================================================
 async function cargarInicioVendedor() {
+  const ciclo = cicloActualInfo();
   const [r, rv] = await Promise.all([
     api("obtenerResumen", { vendedor: state.usuario.nombre, mes: state.mesActualNombre }),
-    api("obtenerMisRegistros", { vendedor: state.usuario.nombre, mes: state.mesActualNombre })
+    api("obtenerMisRegistros", {
+      vendedor: state.usuario.nombre,
+      tipo: "todas",
+      fechaDesde: ISOaDDMMYYYY(fechaAISO(ciclo.desde)),
+      fechaHasta: ISOaDDMMYYYY(fechaAISO(ciclo.hasta)),
+      zonas: state.usuario.zonas
+    })
   ]);
 
   if (!r.ok) { toast("Error cargando resumen", "err"); return; }
@@ -1713,24 +1777,40 @@ function llenarSelectMeses(selectId, mesDefault) {
     sel.appendChild(o);
   });
   sel.onchange = () => {
-    if (selectId === "vMesSel") cargarMisRegistros();
     if (selectId === "aMesSel") cargarDashboard();
     if (selectId === "avMesSel") cargarVentasAdmin();
+    if (selectId === "vRegMesDesde" || selectId === "vRegMesHasta") cargarMisRegistros();
   };
 }
 
+function cambiarTipoRegistro(tipo) {
+  state.regTipoActivo = tipo;
+  document.querySelectorAll("#vRegTabs button").forEach(b => {
+    b.classList.toggle("active", b.dataset.tipo === tipo);
+  });
+  $("vRegFechasGroup").classList.toggle("hidden", tipo === "cuota");
+  $("vRegMesesGroup").classList.toggle("hidden", tipo !== "cuota");
+  cargarMisRegistros();
+}
+
 async function cargarMisRegistros() {
-  const mes = $("vMesSel").value || state.mesActualNombre;
+  const tipo = state.regTipoActivo;
   const miPeticion = ++state.misRegistrosReqId;
   const cont = $("vListaRegistros");
   cont.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
-  const r = await api("obtenerMisRegistros", {
-    vendedor: state.usuario.nombre,
-    mes
-  });
+  const params = { vendedor: state.usuario.nombre, tipo, zonas: state.usuario.zonas };
+  if (tipo === "cuota") {
+    params.mesDesde = $("vRegMesDesde").value;
+    params.mesHasta = $("vRegMesHasta").value;
+  } else {
+    params.fechaDesde = ISOaDDMMYYYY($("vRegFechaDesde").value);
+    params.fechaHasta = ISOaDDMMYYYY($("vRegFechaHasta").value);
+  }
 
-  // Si mientras esperábamos la respuesta el vendedor ya cambió de mes,
+  const r = await api("obtenerMisRegistros", params);
+
+  // Si mientras esperábamos la respuesta el vendedor ya cambió de pestaña/rango,
   // esta respuesta quedó vieja: se descarta para no pisar la vista actual.
   if (miPeticion !== state.misRegistrosReqId) return;
 
@@ -1742,7 +1822,6 @@ async function cargarMisRegistros() {
 
 function renderMisRegistros() {
   const cont = $("vListaRegistros");
-  const mes = $("vMesSel").value || state.mesActualNombre;
   const filtroCliente = ($("vRegBuscarCliente").value || "").trim().toLowerCase();
 
   let ventas = state.misRegistrosVentas || [];
@@ -1752,14 +1831,14 @@ function renderMisRegistros() {
 
   if (ventas.length === 0) {
     cont.innerHTML = '<div class="empty"><span class="icon">📭</span>' +
-      (filtroCliente ? "Sin registros para ese cliente" : "Sin registros en este mes") + '</div>';
+      (filtroCliente ? "Sin registros para ese cliente" : "Sin registros en este rango") + '</div>';
     return;
   }
 
   // Agrupar por idVenta (las cuotas hermanas se muestran juntas)
   const grupos = {};
   ventas.forEach(v => {
-    const k = v.idVenta || ("solo_" + v.fila);
+    const k = v.idVenta || ("solo_" + v.planilla + "_" + v.mes + "_" + v.fila);
     if (!grupos[k]) grupos[k] = [];
     grupos[k].push(v);
   });
@@ -1767,8 +1846,9 @@ function renderMisRegistros() {
   let html = "";
   Object.values(grupos).forEach(cuotas => {
     cuotas.sort((a, b) => (a.nroCuota || "").localeCompare(b.nroCuota || ""));
-    const principal = cuotas[0];  // cuota 1/N
+    const principal = cuotas[0];  // cuota más temprana del grupo dentro de este rango
     const estadoClase = principal.estado.toLowerCase();
+    const etiquetaTipo = principal.tipoRegistro === "nueva" ? "Nueva" : "Cuota " + principal.tipoRegistro;
 
     let cuotasHtml = "";
     if (cuotas.length > 1) {
@@ -1782,8 +1862,8 @@ function renderMisRegistros() {
     let acciones = "";
     if (principal.estado === "Rechazada" || principal.estado === "Pendiente") {
       acciones = `
-        <button class="btn btn-secondary btn-sm" onclick='editarRegistroVendedor(${JSON.stringify(principal).replace(/'/g, "&apos;")}, "${mes}")'>Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="borrarRegistroVendedor(this,${principal.fila},'${mes}')">Borrar</button>
+        <button class="btn btn-secondary btn-sm" onclick='editarRegistroVendedor(${JSON.stringify(principal).replace(/'/g, "&apos;")}, "${principal.mes}")'>Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="borrarRegistroVendedor(this,${principal.fila},'${principal.mes}')">Borrar</button>
       `;
     }
 
@@ -1794,7 +1874,10 @@ function renderMisRegistros() {
             <div class="vc-equipo">${principal.equipo}</div>
             <div class="vc-fecha">${principal.fecha} · ${principal.localidad || "—"}</div>
           </div>
-          <span class="estado-badge ${estadoClase}">${principal.estado}</span>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <span class="prod-badge">${etiquetaTipo}</span>
+            <span class="estado-badge ${estadoClase}">${principal.estado}</span>
+          </div>
         </div>
         <div class="vc-meta">
           <span>Cliente: <strong>${principal.cliente || "—"}</strong></span>
