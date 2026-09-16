@@ -628,6 +628,7 @@ tbody tr:hover{background:var(--accent-soft)}
     <!-- INICIO -->
     <div id="vInicio" class="v-page">
       <div class="page-title"><span class="accent-bar"></span><span>Inicio</span></div>
+      <div class="hint mb" id="vInicioPeriodo"></div>
 
       <div id="bannerPendientes" class="banner banner-warn hidden" onclick="irA('vMisRegistros')">
         ⏳ <span><strong id="bpNum">0</strong> venta(s) pendiente(s) de aprobación</span>
@@ -771,6 +772,7 @@ tbody tr:hover{background:var(--accent-soft)}
       <div id="commissionPreview" class="commission-preview hidden">
         <div class="cp-title">Vas a cobrar</div>
         <div class="cp-total" id="cpTotal">$0</div>
+        <span class="hint">Las ventas del 19 al 18 se liquidan en las comisiones del mes en que cierra el período.</span>
         <div class="cp-breakdown" id="cpBreakdown"></div>
       </div>
 
@@ -803,11 +805,11 @@ tbody tr:hover{background:var(--accent-soft)}
 
       <div class="form-row hidden" id="vRegMesesGroup">
         <div class="form-group">
-          <label>Mes desde</label>
+          <label>Comisiones desde</label>
           <select id="vRegMesDesde"></select>
         </div>
         <div class="form-group">
-          <label>Mes hasta</label>
+          <label>Comisiones hasta</label>
           <select id="vRegMesHasta"></select>
         </div>
       </div>
@@ -1165,16 +1167,31 @@ const state = {
 // API
 // ============================================================
 async function api(accion, datos = {}) {
-  try {
-    const body = Object.assign({ accion }, datos);
+  // Lectura (obtener*/login): reintenta una vez tras 1.5s si la respuesta no es JSON.
+  // Escritura (registrarVenta, aprobarVenta, etc.): no reintenta, para no duplicar la operación.
+  const esLectura = accion === "login" || String(accion).startsWith("obtener");
+  const body = Object.assign({ accion }, datos);
+
+  const intentar = async () => {
     const resp = await fetch(WEB_APP_URL, {
       method: "POST",
       body: JSON.stringify(body)
     });
-    const json = await resp.json();
-    return json;
+    return await resp.json();
+  };
+
+  try {
+    return await intentar();
   } catch (e) {
-    return { ok: false, error: "Error de red: " + e.message };
+    if (!esLectura) {
+      return { ok: false, error: "El servidor no respondió. Verificá en Mis registros antes de volver a cargar." };
+    }
+    await new Promise(r => setTimeout(r, 1500));
+    try {
+      return await intentar();
+    } catch (e2) {
+      return { ok: false, error: "El servidor tardó demasiado, reintentá" };
+    }
   }
 }
 
@@ -1211,31 +1228,61 @@ function ISOaDDMMYYYY(iso) {
   const [y, m, d] = iso.split("-");
   return d + "/" + m + "/" + y;
 }
-function nombreMesActual() {
-  const d = new Date();
-  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
-                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  return meses[d.getMonth()] + d.getFullYear();
-}
+const MESES_ES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
-// Replica en el cliente la regla de ciclo de facturación del backend (cicloDeFecha):
-// día 1-18 => ese mes; día 19+ => mes siguiente. Se usa solo para precargar los
-// valores por defecto de "Mis registros"; el resto de la app sigue usando
-// nombreMesActual() (mes calendario) tal como estaba.
-function cicloActualInfo() {
-  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
-                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const hoy = new Date();
-  let mes = hoy.getMonth(), anio = hoy.getFullYear();
-  if (hoy.getDate() >= 19) {
-    mes++;
-    if (mes > 11) { mes = 0; anio++; }
+// Ciclo de facturación 19-18 de una fecha cualquiera, igual a cicloDeFecha() del backend:
+// día 1-18 => ese mes; día 19+ => mes siguiente. Única función cliente para este cálculo —
+// la reutilizan cicloActualInfo(), el preview de comisión, el toast de "venta registrada"
+// y el período mostrado en Inicio; no duplicar esta lógica en otro lado.
+function cicloDeFechaCliente(fecha) {
+  let mesIdx = fecha.getMonth();
+  let anio = fecha.getFullYear();
+  if (fecha.getDate() >= 19) {
+    mesIdx++;
+    if (mesIdx > 11) { mesIdx = 0; anio++; }
   }
   return {
-    nombre: meses[mes] + anio,
-    desde:  new Date(anio, mes - 1, 19),
-    hasta:  new Date(anio, mes, 18)
+    mesIdx,
+    anio,
+    mesNombre: MESES_ES[mesIdx],
+    clave:   MESES_ES[mesIdx] + anio,        // "Octubre2026" - mismo formato que usa el backend/state.meses
+    mesAnio: MESES_ES[mesIdx] + " " + anio   // "Octubre 2026" - para mostrar al usuario
   };
+}
+
+// nombreMesActual() reutiliza este cálculo para que toda la app (Inicio, Dashboard,
+// Ventas, Ranking) coincida con la hoja donde realmente se guardan las ventas.
+function nombreMesActual() {
+  return cicloActualInfo().nombre;
+}
+
+function cicloActualInfo() {
+  const c = cicloDeFechaCliente(new Date());
+  return {
+    nombre:  c.clave,
+    mesAnio: c.mesAnio,
+    desde:   new Date(c.anio, c.mesIdx - 1, 19),
+    hasta:   new Date(c.anio, c.mesIdx, 18)
+  };
+}
+
+// Mes-ciclo anterior a partir de un nombre "MesAño" (ej: "Agosto2026" -> "Julio2026").
+function nombreMesAnteriorCliente(mesStr) {
+  const match = String(mesStr).match(/^([A-Za-zÁÉÍÓÚáéíóú]+)(\d{4})$/);
+  if (!match) return null;
+  const idx = MESES_ES.indexOf(match[1]);
+  if (idx < 0) return null;
+  let nuevoIdx = idx - 1;
+  let nuevoAnio = Number(match[2]);
+  if (nuevoIdx < 0) { nuevoIdx = 11; nuevoAnio--; }
+  return MESES_ES[nuevoIdx] + nuevoAnio;
+}
+
+// "Octubre2026" -> "Comisiones Octubre 2026" (selects de "Cuotas a cobrar" del vendedor).
+function _labelComisionesDesdeClave(clave) {
+  const match = String(clave).match(/^([A-Za-zÁÉÍÓÚáéíóú]+)(\d{4})$/);
+  return match ? `Comisiones ${match[1]} ${match[2]}` : String(clave);
 }
 
 // ============================================================
@@ -1401,10 +1448,9 @@ async function initVendedor() {
   llenarSelectMeses("vRegMesDesde", cicloActual.nombre);
   llenarSelectMeses("vRegMesHasta", cicloActual.nombre);
 
-  // Cargar inicio
+  // Cargar inicio (irA ya llama a cargarInicioVendedor)
   irA("vInicio");
   setupBottomNav();
-  cargarInicioVendedor();
 }
 
 function setupBottomNav() {
@@ -1445,47 +1491,64 @@ function irA(pageId) {
 // ============================================================
 async function cargarInicioVendedor() {
   const ciclo = cicloActualInfo();
-  const [r, rv] = await Promise.all([
-    api("obtenerResumen", { vendedor: state.usuario.nombre, mes: state.mesActualNombre }),
-    api("obtenerMisRegistros", {
-      vendedor: state.usuario.nombre,
-      tipo: "todas",
-      fechaDesde: ISOaDDMMYYYY(fechaAISO(ciclo.desde)),
-      fechaHasta: ISOaDDMMYYYY(fechaAISO(ciclo.hasta)),
-      zonas: state.usuario.zonas
-    })
-  ]);
 
-  if (!r.ok) { toast("Error cargando resumen", "err"); return; }
+  const periodoEl = $("vInicioPeriodo");
+  if (periodoEl) {
+    const p2 = n => String(n).padStart(2, "0");
+    const desdeStr = p2(ciclo.desde.getDate()) + "/" + p2(ciclo.desde.getMonth() + 1);
+    const hastaStr = p2(ciclo.hasta.getDate()) + "/" + p2(ciclo.hasta.getMonth() + 1);
+    periodoEl.textContent = `Comisiones de ${ciclo.mesAnio} · ventas del ${desdeStr} al ${hastaStr}`;
+  }
+
+  // Una sola llamada: tipo "periodo" trae TODAS las filas del vendedor (cuotas 1, 2 y 3)
+  // en la hoja del ciclo actual, respetando zonas/RGL. Ya no se usa obtenerResumen acá:
+  // esos mismos datos salían de esta respuesta y obtenerResumen además ignora RGL.
+  const rv = await api("obtenerMisRegistros", {
+    vendedor: state.usuario.nombre,
+    tipo: "periodo",
+    mesDesde: ciclo.nombre,
+    mesHasta: ciclo.nombre,
+    zonas: state.usuario.zonas
+  });
+
+  if (!rv.ok) { toast("Error cargando resumen", "err"); return; }
+
+  const ventas = rv.ventas || [];
+  const PLAN_KEYS = ["GB", "DGO", "Pack", "Paramount", "Fútbol", "SSMovil"];
+
+  // Comisión aprobada/pendiente: TODAS las cuotas del ciclo (1, 2 y 3) — es lo que
+  // efectivamente se cobra en las comisiones de este período.
+  let comAprobada = 0, comPendiente = 0;
+  // Ventas, top equipos/planes y banners: solo cuota 1 (ventas nuevas del ciclo).
+  let cantidadVentas = 0, pendientesV = 0, rechazadasV = 0;
+  const equiposMap = {}, planesMap = {};
+
+  ventas.forEach(v => {
+    const esPrimera = String(v.nroCuota || "").startsWith("1/") || String(v.nroCuota || "") === "1/1";
+    const com = Number(v.comisionCuota || 0);
+    if (v.estado === "Aprobada") comAprobada += com;
+    if (v.estado === "Pendiente") comPendiente += com;
+
+    if (!esPrimera) return;
+    if (v.estado === "Pendiente") { pendientesV++; return; }
+    if (v.estado === "Rechazada") { rechazadasV++; return; }
+    if (v.estado !== "Aprobada") return;
+
+    cantidadVentas++;
+    const nombre = String(v.equipo || "").split(" · ")[0].trim();
+    const esPlan = PLAN_KEYS.some(k => nombre.includes(k));
+    const map = esPlan ? planesMap : equiposMap;
+    if (!map[nombre]) map[nombre] = { uds: 0, com: 0 };
+    map[nombre].uds++;
+    map[nombre].com += Number(v.comisionTotal || 0);
+  });
 
   // Banners
   const bp = $("bannerPendientes"), br = $("bannerRechazadas");
-  if (r.pendientesV > 0) { bp.classList.remove("hidden"); $("bpNum").textContent = r.pendientesV; }
+  if (pendientesV > 0) { bp.classList.remove("hidden"); $("bpNum").textContent = pendientesV; }
   else bp.classList.add("hidden");
-  if (r.rechazadasV > 0) { br.classList.remove("hidden"); $("brNum").textContent = r.rechazadasV; }
+  if (rechazadasV > 0) { br.classList.remove("hidden"); $("brNum").textContent = rechazadasV; }
   else br.classList.add("hidden");
-
-  // Procesar ventas para comisión aprobada/pendiente y top productos
-  let comAprobada = 0, comPendiente = 0;
-  const equiposMap = {}, planesMap = {};
-  const PLAN_KEYS = ["GB", "DGO", "Pack", "Paramount", "Fútbol", "SSMovil"];
-
-  if (rv.ok && rv.ventas) {
-    rv.ventas.forEach(v => {
-      const esPrimera = String(v.nroCuota || "").startsWith("1/") || String(v.nroCuota || "") === "1/1";
-      const com = Number(v.comisionCuota || 0);
-      if (v.estado === "Aprobada") comAprobada += com;
-      if (v.estado === "Pendiente") comPendiente += com;
-      if (esPrimera) {
-        const nombre = String(v.equipo || "").split(" · ")[0].trim();
-        const esPlan = PLAN_KEYS.some(k => nombre.includes(k));
-        const map = esPlan ? planesMap : equiposMap;
-        if (!map[nombre]) map[nombre] = { uds: 0, com: 0 };
-        map[nombre].uds++;
-        map[nombre].com += Number(v.comisionTotal || 0);
-      }
-    });
-  }
 
   // KPI comisión aprobada
   $("kComAprobada").textContent = fmtMoney(comAprobada);
@@ -1505,7 +1568,7 @@ async function cargarInicioVendedor() {
   $("kProgLblPe").textContent = fmtMoney(comPendiente);
 
   // KPI ventas
-  $("kVentas").textContent = r.cantidadVentas || 0;
+  $("kVentas").textContent = cantidadVentas;
 
   // Top equipos y planes
   _renderTopProductos("kTopEquipos", equiposMap, "var(--accent-2)");
@@ -1697,15 +1760,17 @@ function recalcularPreview() {
   $("commissionPreview").classList.remove("hidden");
   $("cpTotal").textContent = fmtMoney(comisionTotal);
 
-  const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
-                 "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const [y, m] = fechaISO.split("-").map(Number);
+  // Ciclo 19-18 (igual al backend): la cuota 1 va al ciclo de la fecha de venta,
+  // las siguientes avanzan un ciclo cada una — no el mes calendario de la fecha.
+  const [y, m, d] = fechaISO.split("-").map(Number);
+  const cicloBase = cicloDeFechaCliente(new Date(y, m - 1, d));
   let html = "";
   for (let i = 0; i < cuotas; i++) {
-    let mm = m - 1 + i;
-    let yy = y;
-    while (mm > 11) { mm -= 12; yy++; }
-    const etiqueta = cuotas > 1 ? `${meses[mm]} ${yy} (cuota ${i + 1}/${cuotas})` : `${meses[mm]} ${yy}`;
+    let mesIdx = cicloBase.mesIdx + i;
+    let anio = cicloBase.anio;
+    while (mesIdx > 11) { mesIdx -= 12; anio++; }
+    const mesAnio = MESES_ES[mesIdx] + " " + anio;
+    const etiqueta = cuotas > 1 ? `Comisiones de ${mesAnio} (cuota ${i + 1}/${cuotas})` : `Comisiones de ${mesAnio}`;
     html += `<div class="cp-line"><span>${etiqueta}</span><span>${fmtMoney(comisionPorCuota)}</span></div>`;
   }
   $("cpBreakdown").innerHTML = html;
@@ -1755,7 +1820,12 @@ async function enviarVenta() {
   const r = await api("registrarVenta", datos);
   _btnReady(btn, orig);
   if (r.ok) {
-    toast(`Venta registrada. Comisión total: ${fmtMoney(r.comisionTotal)} (${r.cantidadCuotas} cuota/s)`, "ok", 4500);
+    const [y, m, d] = fechaISO.split("-").map(Number);
+    const cicloPrimeraCuota = cicloDeFechaCliente(new Date(y, m - 1, d));
+    const sufijoCuota = r.cantidadCuotas > 1
+      ? ` · 1ª cuota en comisiones de ${cicloPrimeraCuota.mesAnio}`
+      : ` · se liquida en comisiones de ${cicloPrimeraCuota.mesAnio}`;
+    toast(`Venta registrada. Comisión total: ${fmtMoney(r.comisionTotal)} (${r.cantidadCuotas} cuota/s)${sufijoCuota}`, "ok", 4500);
     prepararFormVenta();
     setTimeout(() => irA("vInicio"), 800);
   } else {
@@ -1768,11 +1838,15 @@ async function enviarVenta() {
 // ============================================================
 function llenarSelectMeses(selectId, mesDefault) {
   const sel = $(selectId);
+  // Selects de "Cuotas a cobrar" del vendedor: texto visible "Comisiones Octubre 2026",
+  // value se mantiene igual ("Octubre2026") para no tocar lo que espera el backend.
+  // Los selects del admin (aMesSel/avMesSel) no se tocan.
+  const esComisionesVendedor = selectId === "vRegMesDesde" || selectId === "vRegMesHasta";
   sel.innerHTML = "";
   state.meses.forEach(m => {
     const o = document.createElement("option");
     o.value = m;
-    o.textContent = m;
+    o.textContent = esComisionesVendedor ? _labelComisionesDesdeClave(m) : m;
     if (m === mesDefault) o.selected = true;
     sel.appendChild(o);
   });
@@ -1863,7 +1937,7 @@ function renderMisRegistros() {
     if (principal.estado === "Rechazada" || principal.estado === "Pendiente") {
       acciones = `
         <button class="btn btn-secondary btn-sm" onclick='editarRegistroVendedor(${JSON.stringify(principal).replace(/'/g, "&apos;")}, "${principal.mes}")'>Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="borrarRegistroVendedor(this,${principal.fila},'${principal.mes}')">Borrar</button>
+        <button class="btn btn-danger btn-sm" onclick="borrarRegistroVendedor(this,${principal.fila},'${principal.mes}','${principal.planilla}','${escapeHtml(String(principal.idVenta || ""))}')">Borrar</button>
       `;
     }
 
@@ -1901,6 +1975,8 @@ function renderMisRegistros() {
 }
 
 function editarVentaModal(venta, mes) {
+  // Registro en edición: enviarEdicion toma de acá planilla e idVenta.
+  state.edicionVendedor = { planilla: venta.planilla || "", idVenta: String(venta.idVenta || "") };
   // Reabrir el form de carga con los datos prellenados, y marcar que es edición
   irA("vCargar");
   setTimeout(() => {
@@ -1962,7 +2038,10 @@ async function enviarEdicion(fila, mes) {
     formaPago: $("fVFormaPago").value,
     link: $("fVLink").value.trim(),
     fila,
-    mes
+    mes,
+    planilla: (state.edicionVendedor || {}).planilla || "",
+    idVenta: (state.edicionVendedor || {}).idVenta || "",
+    validarVendedor: state.usuario.nombre
   };
   if (escenarioId) datos.escenarioId = escenarioId;
   if (!datos.link) return toast("El link del ticket es obligatorio", "err");
@@ -2016,6 +2095,15 @@ function cerrarModal() {
 // ============================================================
 // ADMIN - INIT
 // ============================================================
+// Retrocede n meses calendario desde fechaBase y devuelve {anio, mes} (mes 0-11),
+// manejando el cambio de año (ej: enero - 1 mes -> diciembre del año anterior).
+function _mesCalendarioAtras(fechaBase, n) {
+  let mes = fechaBase.getMonth() - n;
+  let anio = fechaBase.getFullYear();
+  while (mes < 0) { mes += 12; anio--; }
+  return { anio, mes };
+}
+
 async function initAdmin() {
   const [eqR, locR, mesR, vendR] = await Promise.all([
     api("obtenerEquipos"),
@@ -2050,18 +2138,25 @@ async function initAdmin() {
   setupAdminLayout();
   setupBottomNav();
 
-  // Defaults fechas: desde el 1 del mes actual hasta hoy
+  // Defaults de fechas (campos quedan editables; no se pisan si ya tienen un valor).
+  // Certificación: el sueldo del mes M paga el ciclo del 19 del mes calendario M-1
+  // al 18 del mes calendario M, sin importar el día de hoy.
   const hoy = new Date();
-  const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  const toISO = d => d.toISOString().split("T")[0];
+  const mesCertAnt = _mesCalendarioAtras(hoy, 1);
+  const certDesde = new Date(mesCertAnt.anio, mesCertAnt.mes, 19);
+  const certHasta = new Date(hoy.getFullYear(), hoy.getMonth(), 18);
   const fdEl = $("acFechaDesde");
   const fhEl = $("acFechaHasta");
-  if (fdEl && !fdEl.value) fdEl.value = toISO(primerDiaMes);
-  if (fhEl && !fhEl.value) fhEl.value = toISO(hoy);
+  if (fdEl && !fdEl.value) fdEl.value = fechaAISO(certDesde);
+  if (fhEl && !fhEl.value) fhEl.value = fechaAISO(certHasta);
+
+  // Pendientes: desde el 19 de dos meses calendario atrás, hasta hoy.
+  const mesPendAnt = _mesCalendarioAtras(hoy, 2);
+  const pendDesde = new Date(mesPendAnt.anio, mesPendAnt.mes, 19);
   const apFdEl = $("apFechaDesde");
   const apFhEl = $("apFechaHasta");
-  if (apFdEl && !apFdEl.value) apFdEl.value = toISO(primerDiaMes);
-  if (apFhEl && !apFhEl.value) apFhEl.value = toISO(hoy);
+  if (apFdEl && !apFdEl.value) apFdEl.value = fechaAISO(pendDesde);
+  if (apFhEl && !apFhEl.value) apFhEl.value = fechaAISO(hoy);
 
   // Visibilidad selector paquete: solo si el usuario tiene acceso a múltiples zonas
   const zonasUsuario = state.usuario.zonas || [];
@@ -2434,20 +2529,16 @@ async function cargarRankingVendedor() {
   if (!cont) return;
 
   const zonas = state.usuario ? (state.usuario.zonas || []) : [];
-  const [rActual, mesesR] = await Promise.all([
-    api("obtenerRanking", { mes: state.mesActualNombre, zonas }),
-    api("obtenerMesesDisponibles")
-  ]);
+  const mesAnt = nombreMesAnteriorCliente(state.mesActualNombre);
+  const hayMesAnt = !!(mesAnt && state.meses.includes(mesAnt));
 
-  // Buscar mes anterior
+  const promesas = [api("obtenerRanking", { mes: state.mesActualNombre, zonas })];
+  if (hayMesAnt) promesas.push(api("obtenerRanking", { mes: mesAnt, zonas }));
+  const [rActual, rAntResp] = await Promise.all(promesas);
+
+  // Mes anterior real (ciclo 19-18), no "el primero distinto de la lista" (podía ser futuro)
   let rankingAnt = [];
-  if (mesesR.ok && mesesR.meses && mesesR.meses.length > 1) {
-    const mesAnt = mesesR.meses.find(m => m !== state.mesActualNombre);
-    if (mesAnt) {
-      const rAnt = await api("obtenerRanking", { mes: mesAnt, zonas });
-      if (rAnt.ok) rankingAnt = rAnt.ranking || [];
-    }
-  }
+  if (hayMesAnt && rAntResp && rAntResp.ok) rankingAnt = rAntResp.ranking || [];
 
   if (!rActual.ok || !rActual.ranking || !rActual.ranking.length) {
     cont.innerHTML = '<div class="vd-empty" style="padding:18px">Todavía no hay ventas aprobadas este mes</div>';
@@ -2587,8 +2678,9 @@ function filtrarYRenderPendientes() {
   state.pendientesAdminRows = filas.map(({v}) => v);
 
   let html = "";
-  filas.forEach(({v, idx}) => {
+  filas.forEach(({v}, idx) => {
     const d = v.datos;
+    const idv = escapeHtml(String(d[17] || ""));
     html += `
       <div class="venta-card pendiente">
         <div class="vc-top">
@@ -2612,9 +2704,9 @@ function filtrarYRenderPendientes() {
           </div>
           <div class="vc-actions">
             <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'pendientes')">Editar</button>
-            <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(this,${v.fila},'${v.mes}','pendientes','${v.planilla}')">Borrar</button>
-            <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${v.mes}", "${v.planilla}")'>Rechazar</button>
-            <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${v.mes}", "${v.planilla}")'>Aprobar</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(this,${v.fila},'${v.mes}','pendientes','${v.planilla}','${idv}')">Borrar</button>
+            <button class="btn btn-danger btn-sm" onclick='rechazarVenta(${v.fila}, "${v.mes}", "${v.planilla}", "${idv}")'>Rechazar</button>
+            <button class="btn btn-success btn-sm" onclick='aprobarVenta(${v.fila}, "${v.mes}", "${v.planilla}", "${idv}")'>Aprobar</button>
           </div>
         </div>
       </div>`;
@@ -2622,7 +2714,7 @@ function filtrarYRenderPendientes() {
   cont.innerHTML = html;
 }
 
-async function aprobarVenta(fila, mes, planilla) {
+async function aprobarVenta(fila, mes, planilla, idVenta) {
   abrirModal({
     titulo: "Aprobar venta",
     contenido: "<p>Esta acción aprueba la venta y todas sus cuotas hermanas (si las hay).</p>",
@@ -2630,7 +2722,7 @@ async function aprobarVenta(fila, mes, planilla) {
       { txt: "Cancelar", clase: "btn-ghost", accion: cerrarModal },
       { txt: "Aprobar", clase: "btn-success", accion: async (btn) => {
         const orig = _btnBusy(btn);
-        const r = await api("aprobarVenta", { fila, mes, planilla });
+        const r = await api("aprobarVenta", { fila, mes, planilla, idVenta });
         if (r.ok) {
           cerrarModal();
           let msg = "Venta aprobada";
@@ -2646,7 +2738,7 @@ async function aprobarVenta(fila, mes, planilla) {
   });
 }
 
-async function rechazarVenta(fila, mes, planilla) {
+async function rechazarVenta(fila, mes, planilla, idVenta) {
   abrirModal({
     titulo: "Rechazar venta",
     contenido: `<p>Motivo del rechazo (lo verá el vendedor):</p>
@@ -2657,7 +2749,7 @@ async function rechazarVenta(fila, mes, planilla) {
         const motivo = $("motivoRechazo").value.trim();
         if (!motivo) { toast("Tenés que poner un motivo", "err"); return; }
         const orig = _btnBusy(btn);
-        const r = await api("rechazarVenta", { fila, mes, motivo, planilla });
+        const r = await api("rechazarVenta", { fila, mes, motivo, planilla, idVenta });
         if (r.ok) {
           cerrarModal();
           toast("Venta rechazada", "ok");
@@ -2742,6 +2834,7 @@ function filtrarYRenderVentas() {
     ventas.forEach((v, idx) => {
       const d = v.datos;
       const estado = String(d[13] || "").trim();
+      const idv = escapeHtml(String(d[17] || ""));
       html += `<tr>
         <td>${d[0]}</td>
         <td>${d[3]}</td>
@@ -2754,7 +2847,7 @@ function filtrarYRenderVentas() {
         <td>${d[16] ? '<a href="' + d[16] + '" target="_blank">🔗</a>' : "—"}</td>
         <td style="white-space:nowrap">
           <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
-          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarVentaAdmin(this,${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarVentaAdmin(this,${v.fila},'${mes}','ventas','${v.planilla}','${idv}')">Borrar</button>
         </td>
       </tr>`;
     });
@@ -2765,6 +2858,7 @@ function filtrarYRenderVentas() {
     ventas.forEach((v, idx) => {
       const d = v.datos;
       const estado = String(d[13] || "").trim();
+      const idv = escapeHtml(String(d[17] || ""));
       html += `<div class="venta-card ${estado.toLowerCase()}">
         <div class="vc-top">
           <div>
@@ -2783,7 +2877,7 @@ function filtrarYRenderVentas() {
         </div>
         <div class="vc-actions" style="margin-top:8px;justify-content:flex-end">
           <button class="btn btn-secondary btn-sm" onclick="editarVentaAdmin(${idx},'ventas')">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(this,${v.fila},'${mes}','ventas','${v.planilla}')">Borrar</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarVentaAdmin(this,${v.fila},'${mes}','ventas','${v.planilla}','${idv}')">Borrar</button>
         </div>
       </div>`;
     });
@@ -3201,10 +3295,10 @@ function ddmmyyyyToISO(s) {
   return p[2] + "-" + p[1].padStart(2,"0") + "-" + p[0].padStart(2,"0");
 }
 
-async function eliminarVentaAdmin(btn, fila, mes, fuente, planilla) {
+async function eliminarVentaAdmin(btn, fila, mes, fuente, planilla, idVenta) {
   if (!confirm("¿Eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.")) return;
   const orig = _btnBusy(btn);
-  const r = await api("eliminarVenta", { fila, mes, planilla });
+  const r = await api("eliminarVenta", { fila, mes, planilla, idVenta });
   if (r.ok) {
     toast("Venta eliminada", "ok");
     if (fuente === "pendientes") cargarPendientes();
@@ -3305,7 +3399,8 @@ async function editarVentaAdmin(idx, fuente) {
           rol: "admin",
           fila: item.fila,
           mes,
-          planilla: item.planilla
+          planilla: item.planilla,
+          idVenta: String(d[17] || "")
         };
         if (escId) datos.escenarioId = escId;
         const orig = _btnBusy(btn);
@@ -3331,10 +3426,13 @@ function editarRegistroVendedor(venta, mes) {
   editarVentaModal(venta, mes);
 }
 
-async function borrarRegistroVendedor(btn, fila, mes) {
+async function borrarRegistroVendedor(btn, fila, mes, planilla, idVenta) {
   if (!confirm("¿Eliminar esta venta y todas sus cuotas? Esta acción no se puede deshacer.")) return;
   const orig = _btnBusy(btn);
-  const r = await api("eliminarVenta", { fila, mes });
+  const r = await api("eliminarVenta", {
+    fila, mes, planilla, idVenta,
+    validarVendedor: state.usuario.nombre
+  });
   if (r.ok) {
     toast("Venta eliminada", "ok");
     cargarMisRegistros();
