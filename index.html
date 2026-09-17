@@ -1160,8 +1160,26 @@ const state = {
   tipoVentaActual: "Equipo",  // tipo seleccionado en el form (Equipo o Plan)
   misRegistrosReqId: 0,       // token para descartar respuestas de "Mis registros" fuera de orden
   misRegistrosVentas: [],     // últimas ventas cargadas, para filtrar por cliente sin re-consultar
-  regTipoActivo: "nueva"      // pestaña activa en "Mis registros": nueva | cuota | todas
+  regTipoActivo: "nueva",     // pestaña activa en "Mis registros": nueva | cuota | todas
+  inicioCargadoTs: 0,         // última carga OK del Inicio del vendedor (ms)
+  inicioSucio: false,         // true tras cualquier escritura: fuerza recargar el Inicio
+  inicioCargando: false,
+  dashReqId: 0                // token para descartar respuestas viejas del dashboard
 };
+
+// ============================================================
+// CACHÉ LOCAL (localStorage): mostrar al instante y actualizar en segundo plano
+// ============================================================
+const LS_PREFIJO = "ssc_v1_";
+function lsGet(clave) {
+  try {
+    const raw = localStorage.getItem(LS_PREFIJO + clave);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function lsSet(clave, valor) {
+  try { localStorage.setItem(LS_PREFIJO + clave, JSON.stringify(valor)); } catch (e) {}
+}
 
 // ============================================================
 // API
@@ -1181,7 +1199,9 @@ async function api(accion, datos = {}) {
   };
 
   try {
-    return await intentar();
+    const res = await intentar();
+    if (!esLectura && res && res.ok) state.inicioSucio = true;
+    return res;
   } catch (e) {
     if (!esLectura) {
       return { ok: false, error: "El servidor no respondió. Verificá en Mis registros antes de volver a cargar." };
@@ -1267,18 +1287,6 @@ function cicloActualInfo() {
   };
 }
 
-// Mes-ciclo anterior a partir de un nombre "MesAño" (ej: "Agosto2026" -> "Julio2026").
-function nombreMesAnteriorCliente(mesStr) {
-  const match = String(mesStr).match(/^([A-Za-zÁÉÍÓÚáéíóú]+)(\d{4})$/);
-  if (!match) return null;
-  const idx = MESES_ES.indexOf(match[1]);
-  if (idx < 0) return null;
-  let nuevoIdx = idx - 1;
-  let nuevoAnio = Number(match[2]);
-  if (nuevoIdx < 0) { nuevoIdx = 11; nuevoAnio--; }
-  return MESES_ES[nuevoIdx] + nuevoAnio;
-}
-
 // "Octubre2026" -> "Comisiones Octubre 2026" (selects de "Cuotas a cobrar" del vendedor).
 function _labelComisionesDesdeClave(clave) {
   const match = String(clave).match(/^([A-Za-zÁÉÍÓÚáéíóú]+)(\d{4})$/);
@@ -1289,17 +1297,28 @@ function _labelComisionesDesdeClave(clave) {
 // LOGIN
 // ============================================================
 async function initLogin() {
+  // Mostrar al instante la última lista guardada en este equipo y actualizarla en segundo plano.
+  const guardados = lsGet("usuariosLogin");
+  if (guardados) renderUsuariosLogin(guardados);
+
   const r = await api("obtenerUsuariosLogin");
   if (!r.ok) {
-    toast("Error cargando usuarios: " + (r.error || ""), "err");
+    if (!guardados) toast("Error cargando usuarios: " + (r.error || ""), "err");
     return;
   }
+  const usuarios = r.usuarios || [];
+  lsSet("usuariosLogin", usuarios);
+  if (!guardados || JSON.stringify(guardados) !== JSON.stringify(usuarios)) {
+    renderUsuariosLogin(usuarios);
+  }
+}
 
-  const usuarios  = r.usuarios || [];
+function renderUsuariosLogin(usuarios) {
   const vendedores = usuarios.filter(u => u.rol === "vendedor");
   const especiales = usuarios.filter(u => u.rol !== "vendedor");
 
   const sel = $("loginVendedor");
+  const seleccionPrevia = sel.value;
   sel.innerHTML = '<option value="">-- Seleccionar --</option>';
 
   // Vendedores en su propio optgroup
@@ -1327,6 +1346,8 @@ async function initLogin() {
     });
     sel.appendChild(grp);
   }
+  // Si el usuario ya había elegido su nombre mientras llegaba la lista nueva, conservarlo
+  if (seleccionPrevia && usuarios.some(u => u.nombre === seleccionPrevia)) sel.value = seleccionPrevia;
 }
 
 function updatePinDisplay() {
@@ -1387,6 +1408,8 @@ async function hacerLogin() {
 
   if (r.ok) {
     // state.usuario contiene: { ok, rol, zonas, id, nombre, localidad }
+    state.catalogosLogin = r.catalogos || null;
+    delete r.catalogos;
     state.usuario = r;
     if (pinInput) pinInput.value = "";
     if (errEl) errEl.classList.add("hidden");
@@ -1415,6 +1438,10 @@ function mostrarPantalla(id) {
 
 function cerrarSesion() {
   state.usuario = null;
+  state.inicioCargadoTs = 0;
+  state.inicioSucio = false;
+  state.edicionVendedor = null;
+  state.dashReqId++;
   mostrarPantalla("screenLogin");
   $("loginVendedor").value = "";
   if ($("loginPin"))    $("loginPin").value = "";
@@ -1424,16 +1451,38 @@ function cerrarSesion() {
 // ============================================================
 // VENDEDOR - INIT
 // ============================================================
-async function initVendedor() {
-  // Cargar equipos, localidades, meses
+// Catálogos (equipos, localidades, meses): vienen en la respuesta del login.
+// Si no llegaron, se usa la última copia de este equipo y se piden por separado.
+async function cargarCatalogos() {
+  const aplicar = (c) => {
+    if (!c) return;
+    if (Array.isArray(c.equipos))     state.equipos     = c.equipos;
+    if (Array.isArray(c.localidades)) state.localidades = c.localidades;
+    if (Array.isArray(c.meses))       state.meses       = c.meses.slice();
+  };
+  const delLogin = state.catalogosLogin;
+  state.catalogosLogin = null;
+  if (delLogin) {
+    aplicar(delLogin);
+    lsSet("catalogos", delLogin);
+    return;
+  }
+  aplicar(lsGet("catalogos"));
   const [eqR, locR, mesR] = await Promise.all([
     api("obtenerEquipos"),
     api("obtenerLocalidades"),
     api("obtenerMesesDisponibles")
   ]);
-  if (eqR.ok) state.equipos = eqR.equipos || [];
-  if (locR.ok) state.localidades = locR.localidades || [];
-  if (mesR.ok) state.meses = mesR.meses || [];
+  const nuevo = {};
+  if (eqR.ok)  nuevo.equipos     = eqR.equipos || [];
+  if (locR.ok) nuevo.localidades = locR.localidades || [];
+  if (mesR.ok) nuevo.meses       = mesR.meses || [];
+  aplicar(nuevo);
+  if (eqR.ok && locR.ok && mesR.ok) lsSet("catalogos", nuevo);
+}
+
+async function initVendedor() {
+  await cargarCatalogos();
 
   state.mesActualNombre = nombreMesActual();
   if (!state.meses.includes(state.mesActualNombre)) {
@@ -1489,8 +1538,29 @@ function irA(pageId) {
 // ============================================================
 // VENDEDOR - INICIO
 // ============================================================
+const INICIO_TTL_MS = 3 * 60 * 1000;
+
 async function cargarInicioVendedor() {
+  // Si se cargó hace menos de 3 min y no hubo escrituras, se muestran los datos que ya están.
+  const reciente = state.inicioCargadoTs && (Date.now() - state.inicioCargadoTs) < INICIO_TTL_MS;
+  if (state.inicioCargando || (reciente && !state.inicioSucio)) return;
+  state.inicioCargando = true;
+  state.inicioSucio = false;
+  const usuario = state.usuario;
+  try {
+    const ok = await _cargarInicioVendedor();
+    if (ok) state.inicioCargadoTs = Date.now();
+    else state.inicioSucio = true;
+  } finally {
+    state.inicioCargando = false;
+  }
+  // Si mientras cargaba se cerró sesión y entró otro vendedor, cargar el Inicio del nuevo
+  if (state.usuario && state.usuario !== usuario) cargarInicioVendedor();
+}
+
+async function _cargarInicioVendedor() {
   const ciclo = cicloActualInfo();
+  const usuarioAlPedir = state.usuario;
 
   const periodoEl = $("vInicioPeriodo");
   if (periodoEl) {
@@ -1511,7 +1581,8 @@ async function cargarInicioVendedor() {
     zonas: state.usuario.zonas
   });
 
-  if (!rv.ok) { toast("Error cargando resumen", "err"); return; }
+  if (state.usuario !== usuarioAlPedir) return false;  // cerró sesión mientras cargaba
+  if (!rv.ok) { toast("Error cargando resumen", "err"); return false; }
 
   const ventas = rv.ventas || [];
   const PLAN_KEYS = ["GB", "DGO", "Pack", "Paramount", "Fútbol", "SSMovil"];
@@ -1576,6 +1647,7 @@ async function cargarInicioVendedor() {
 
   // Ranking
   cargarRankingVendedor();
+  return true;
 }
 
 function _renderTopProductos(containerId, map, color) {
@@ -1640,6 +1712,47 @@ function prepararFormVenta() {
   $("fVEscenario").onchange = recalcularPreview;
   $("fVFormaPago").onchange = recalcularPreview;
   $("fVPrecio").oninput = recalcularPreview;
+
+  // Si la carga inicial del catálogo falló, pedirlo de nuevo en vez de dejar la lista vacía
+  if (!state.equipos.length || !state.localidades.length) recargarCatalogoForm();
+}
+
+function llenarSelectLocalidades() {
+  const selL = $("fVLocalidad");
+  const previa = selL.value;
+  selL.innerHTML = '<option value="">-- Seleccionar --</option>';
+  state.localidades.forEach(l => {
+    const o = document.createElement("option");
+    o.value = l.nombre;
+    o.textContent = l.nombre;
+    if (l.nombre === (previa || state.usuario.localidad)) o.selected = true;
+    selL.appendChild(o);
+  });
+}
+
+async function recargarCatalogoForm() {
+  if (state.recargandoCatalogo) return;
+  state.recargandoCatalogo = true;
+  const selE = $("fVEquipo");
+  if (!state.equipos.length) selE.innerHTML = '<option value="">Cargando productos…</option>';
+  const [eqR, locR] = await Promise.all([
+    state.equipos.length ? Promise.resolve(null) : api("obtenerEquipos"),
+    state.localidades.length ? Promise.resolve(null) : api("obtenerLocalidades")
+  ]);
+  state.recargandoCatalogo = false;
+
+  const guardado = lsGet("catalogos") || {};
+  if (eqR && eqR.ok) { state.equipos = eqR.equipos || []; guardado.equipos = state.equipos; }
+  if (locR && locR.ok) { state.localidades = locR.localidades || []; guardado.localidades = state.localidades; }
+  if ((eqR && eqR.ok) || (locR && locR.ok)) lsSet("catalogos", guardado);
+
+  if (locR && locR.ok) llenarSelectLocalidades();
+  if (!state.equipos.length) {
+    selE.innerHTML = '<option value="">No se pudieron cargar los productos</option>';
+    toast("No se pudieron cargar los productos. Volvé a abrir Cargar venta.", "err");
+    return;
+  }
+  if (eqR && eqR.ok) llenarSelectProductos(state.tipoVentaActual || "Equipo");
 }
 
 // Cambia entre tipo "Equipo" y "Plan" y filtra el select de productos
@@ -2105,15 +2218,10 @@ function _mesCalendarioAtras(fechaBase, n) {
 }
 
 async function initAdmin() {
-  const [eqR, locR, mesR, vendR] = await Promise.all([
-    api("obtenerEquipos"),
-    api("obtenerLocalidades"),
-    api("obtenerMesesDisponibles"),
+  const [, vendR] = await Promise.all([
+    cargarCatalogos(),
     api("obtenerVendedores")
   ]);
-  if (eqR.ok)   state.equipos    = eqR.equipos    || [];
-  if (locR.ok)  state.localidades = locR.localidades || [];
-  if (mesR.ok)  state.meses       = mesR.meses       || [];
   if (vendR.ok) state.vendedores  = vendR.vendedores  || [];
 
   state.mesActualNombre = nombreMesActual();
@@ -2242,13 +2350,43 @@ function varChip(v) {
 
 async function cargarDashboard() {
   const mes = $("aMesSel").value || state.mesActualNombre;
-  const anR = await api("obtenerAnalisis", { mes, zonas: state.usuario ? state.usuario.zonas : [] });
+  const zonas = state.usuario ? (state.usuario.zonas || []) : [];
+  const claveLS = "dash_" + mes + "_" + (zonas.length ? zonas.slice().sort().join(",") : "todas");
+  const reqId = ++state.dashReqId;
+
+  // Mostrar al instante el último dashboard guardado en este equipo
+  const guardado = lsGet(claveLS);
+  if (guardado) renderDashboard(guardado);
+  _avisoDashboard(true);
+
+  const anR = await api("obtenerAnalisis", { mes, zonas });
+  if (reqId !== state.dashReqId) return;  // cambió el mes o se cerró sesión
+  _avisoDashboard(false);
 
   if (!anR.ok || !anR.analisis) {
-    toast("Error cargando análisis", "err");
+    toast(guardado ? "No se pudo actualizar el dashboard (se muestran los últimos datos)" : "Error cargando análisis", "err");
     return;
   }
-  const a = anR.analisis;
+  lsSet(claveLS, anR.analisis);
+  renderDashboard(anR.analisis);
+}
+
+function _avisoDashboard(visible) {
+  let el = $("dActualizando");
+  if (!el) {
+    const sel = $("aMesSel");
+    if (!sel || !sel.parentNode) return;
+    el = document.createElement("span");
+    el.id = "dActualizando";
+    el.textContent = "actualizando…";
+    el.style.cssText = "font-size:12px;color:var(--text-mute);align-self:center";
+    sel.parentNode.appendChild(el);
+  }
+  el.classList.toggle("hidden", !visible);
+}
+
+function renderDashboard(a) {
+  const vendSelPrevio = state.dash.vendSel;
   state.dash.etiquetas = a.etiquetasMeses || [];
 
   // --- Hero comisión ---
@@ -2324,6 +2462,9 @@ async function cargarDashboard() {
   renderChartEquipos(a.porEquipo || {});
   renderChartPlanes(a.porPlan || {});
   renderChartVendedoresMonto(vendArr);
+
+  // Si había un vendedor abierto en el detalle y sigue en la lista, reabrirlo
+  if (vendSelPrevio && vendArr.some(v => v.nombre === vendSelPrevio)) verDetalleVendedor(vendSelPrevio);
 }
 
 function renderTablaEquipo() {
@@ -2529,16 +2670,10 @@ async function cargarRankingVendedor() {
   if (!cont) return;
 
   const zonas = state.usuario ? (state.usuario.zonas || []) : [];
-  const mesAnt = nombreMesAnteriorCliente(state.mesActualNombre);
-  const hayMesAnt = !!(mesAnt && state.meses.includes(mesAnt));
-
-  const promesas = [api("obtenerRanking", { mes: state.mesActualNombre, zonas })];
-  if (hayMesAnt) promesas.push(api("obtenerRanking", { mes: mesAnt, zonas }));
-  const [rActual, rAntResp] = await Promise.all(promesas);
-
-  // Mes anterior real (ciclo 19-18), no "el primero distinto de la lista" (podía ser futuro)
-  let rankingAnt = [];
-  if (hayMesAnt && rAntResp && rAntResp.ok) rankingAnt = rAntResp.ranking || [];
+  // Una sola llamada: ranking del ciclo actual + ciclo anterior real (el backend
+  // calcula el mes anterior y cachea ambos 5 min).
+  const rActual = await api("obtenerRanking", { mes: state.mesActualNombre, zonas, incluirAnterior: true });
+  const rankingAnt = (rActual.ok && rActual.rankingAnt) || [];
 
   if (!rActual.ok || !rActual.ranking || !rActual.ranking.length) {
     cont.innerHTML = '<div class="vd-empty" style="padding:18px">Todavía no hay ventas aprobadas este mes</div>';
