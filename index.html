@@ -1204,7 +1204,7 @@ async function api(accion, datos = {}) {
     return res;
   } catch (e) {
     if (!esLectura) {
-      return { ok: false, error: "El servidor no respondió. Verificá en Mis registros antes de volver a cargar." };
+      return { ok: false, error: "El servidor no respondió. Recargá la lista para verificar si se aplicó antes de reintentar." };
     }
     await new Promise(r => setTimeout(r, 1500));
     try {
@@ -1411,6 +1411,7 @@ async function hacerLogin() {
     state.catalogosLogin = r.catalogos || null;
     delete r.catalogos;
     state.usuario = r;
+    iniciarControlSesion();
     if (pinInput) pinInput.value = "";
     if (errEl) errEl.classList.add("hidden");
 
@@ -1437,7 +1438,10 @@ function mostrarPantalla(id) {
 }
 
 function cerrarSesion() {
+  cerrarModal();
   state.usuario = null;
+  state.sesionActividadTs = 0;
+  state.sesionDia = "";
   state.inicioCargadoTs = 0;
   state.inicioSucio = false;
   state.edicionVendedor = null;
@@ -1585,7 +1589,11 @@ async function _cargarInicioVendedor() {
   if (!rv.ok) { toast("Error cargando resumen", "err"); return false; }
 
   const ventas = rv.ventas || [];
-  const PLAN_KEYS = ["GB", "DGO", "Pack", "Paramount", "Fútbol", "SSMovil"];
+  // Equipo o Plan según el catálogo (tipoProducto), no por palabras clave en el nombre.
+  // Si el producto ya no está en el catálogo, se cuenta como Equipo y se avisa en consola.
+  const tipoPorNombre = {};
+  (state.equipos || []).forEach(e => { tipoPorNombre[String(e.nombre || "").trim()] = e.tipoProducto || "Equipo"; });
+  const productosSinCatalogo = new Set();
 
   // Comisión aprobada/pendiente: TODAS las cuotas del ciclo (1, 2 y 3) — es lo que
   // efectivamente se cobra en las comisiones de este período.
@@ -1607,12 +1615,17 @@ async function _cargarInicioVendedor() {
 
     cantidadVentas++;
     const nombre = String(v.equipo || "").split(" · ")[0].trim();
-    const esPlan = PLAN_KEYS.some(k => nombre.includes(k));
+    if (!(nombre in tipoPorNombre)) productosSinCatalogo.add(nombre);
+    const esPlan = tipoPorNombre[nombre] === "Plan";
     const map = esPlan ? planesMap : equiposMap;
     if (!map[nombre]) map[nombre] = { uds: 0, com: 0 };
     map[nombre].uds++;
     map[nombre].com += Number(v.comisionTotal || 0);
   });
+
+  if (productosSinCatalogo.size) {
+    console.warn("Productos vendidos que no están en el catálogo (se cuentan como Equipo):", [...productosSinCatalogo]);
+  }
 
   // Banners
   const bp = $("bannerPendientes"), br = $("bannerRechazadas");
@@ -3580,6 +3593,69 @@ async function borrarRegistroVendedor(btn, fila, mes, planilla, idVenta) {
 // ============================================================
 // INIT
 // ============================================================
+// ============================================================
+// CIERRE AUTOMÁTICO DE SESIÓN
+// ============================================================
+// La sesión se cierra tras 60 min sin actividad del usuario o al cambiar de día
+// (evita pestañas abiertas por días con datos y ciclo desactualizados).
+// Todo es local: no genera llamadas al servidor. Cada pestaña controla la suya.
+const SESION_INACTIVIDAD_MS = 60 * 60 * 1000;
+
+function _diaLocal() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+}
+
+function iniciarControlSesion() {
+  state.sesionActividadTs = Date.now();
+  state.sesionDia = _diaLocal();
+}
+
+function _motivoCierreSesion() {
+  if (!state.usuario || !state.sesionActividadTs) return null;
+  if (state.sesionDia !== _diaLocal()) return "dia";
+  if (Date.now() - state.sesionActividadTs > SESION_INACTIVIDAD_MS) return "inactividad";
+  return null;
+}
+
+// Devuelve true si cerró la sesión
+function verificarSesion() {
+  const motivo = _motivoCierreSesion();
+  if (!motivo) return false;
+  cerrarSesion();
+  state.sesionTragarHasta = Date.now() + 800;  // ignorar el clic que disparó el cierre
+  const msg = motivo === "dia"
+    ? "Tu sesión se cerró por cambio de día. Ingresá de nuevo."
+    : "Tu sesión se cerró tras 60 minutos sin actividad. Ingresá de nuevo.";
+  const errEl = $("loginError");
+  if (errEl) { errEl.textContent = msg; errEl.classList.remove("hidden"); }
+  else toast(msg, "err");
+  return true;
+}
+
+function _registrarActividad(ev) {
+  // Clic/tecla que llegó justo después del cierre: no debe actuar sobre la pantalla de login
+  if (state.sesionTragarHasta && Date.now() < state.sesionTragarHasta) {
+    if (ev.cancelable) ev.preventDefault();
+    ev.stopPropagation();
+    return;
+  }
+  if (!state.usuario) return;
+  if (verificarSesion()) {
+    if (ev.cancelable) ev.preventDefault();
+    ev.stopPropagation();
+    return;
+  }
+  state.sesionActividadTs = Date.now();
+}
+
+["pointerdown", "click", "keydown", "touchstart", "wheel"].forEach(tipo =>
+  document.addEventListener(tipo, _registrarActividad, true)
+);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) verificarSesion(); });
+window.addEventListener("focus", verificarSesion);
+setInterval(verificarSesion, 60 * 1000);
+
 document.addEventListener("DOMContentLoaded", async () => {
   setupKeypad();
   $("btnLogin").onclick = hacerLogin;
